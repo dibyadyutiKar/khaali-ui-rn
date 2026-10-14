@@ -121,11 +121,38 @@ Promoted `SearchBar` to `src/components/` (out of `screens/find/`) once this sec
 ### What's left in this phase
 
 1. **Backend integration** — every item in `docs/gaps.md` under "Backend-dependent" needs a real API before its TODO can be resolved, Find/Search Location included.
-2. **Real map SDK** — Find's map is a static illustration with hardcoded sample pins; swapping in `react-native-maps` (or similar) + live spot coordinates is real work, not yet started. The "center on my location" button (on both Find and Search Location) is wired to nothing until this exists.
+2. **Real map SDK** — Find's map is a static illustration with hardcoded sample pins; swapping in `react-native-maps` (or similar) + live spot coordinates is real work, not yet started. The "center on my location" button (on Find, Search Location, and the listing flow's pin screen) is wired to nothing until this exists.
 3. **Shared location state.** Selecting a place on Search Location (current location, a saved place, a recent search) currently just calls `router.back()` — it doesn't update Find's search bar, because there's no state shared across screens yet (Context, or a param round-trip on the way back). Deliberately not built speculatively for one screen; revisit once a second place needs the same thing.
-4. **Bookings, List Space, Profile** — currently placeholders; each is its own real screen to design and build.
-5. **Host / list-a-space flow** — referenced from Welcome's "Have a parking space?" link and from the List Space tab; not yet designed.
-6. **Support flow** — referenced from every "Contact Khaali Support" link; not yet designed.
-7. **Spot detail screen** — tapping a `SpotCard` currently goes nowhere; not yet designed.
+4. **Bookings, Profile** — still placeholders; each is its own real screen to design and build. (List Space graduated out of this list in Phase 3, below.)
+5. **Support flow** — referenced from every "Contact Khaali Support" link; not yet designed.
+6. **Spot detail screen** — tapping a `SpotCard` currently goes nowhere; not yet designed.
 
 See `AGENTS.md`'s folder-structure rules before scaffolding any of the above — `src/server/`, `src/lib/`, etc. still shouldn't exist until something real needs them.
+
+---
+
+## Phase 3 — Host flow: listing a spot
+
+**Status: started (1 of 3 steps).** The List Space tab is no longer a placeholder — it's a real entry screen with a working "Get started" button into the listing wizard.
+
+### What's built
+
+- **List Space tab** (`src/screens/list-space/`) — replaces its old `ComingSoon` placeholder with real content: hero icon, headline, a one-line pitch, and a "Get started →" button that pushes into the wizard below. This closes one row from Phase 2's "what's left" list.
+- **Listing flow, step 1 of 3** (`src/screens/list-spot-location/`, route `/list-spot/location`) — "Where is your parking space?": a map-pin placeholder (same honest-illustration approach as Find's map — see below), an address card, an optional multiline entrance-instructions field, and a 5-slot photo picker (Cover, Gate Entry, Wide Angle, Pillar/Mark, Driveway). "Continue to Pricing" is disabled until a cover photo is added.
+- **Photos are genuinely functional**, not decorative — `expo-image-picker` is wired for real: tapping an empty slot requests media-library permission and opens the real system photo picker; a picked photo renders in that slot; a filled slot can be removed. This is real device capability, not backend-dependent, so it was built all the way rather than stubbed.
+- Two new shared components, justified ahead of a literal second use because the screen's own copy states there are 3 steps (not a speculative guess): `FlowHeader` (back + centered title — a third, distinct header shape alongside `Header` and `FindHeader`, for focused wizard flows) and `FlowStepProgress` (Step X of Y + a continuous fill bar, distinct from Profile Setup's discrete-segment `StepProgress` since that one only ever needs 2 segments).
+
+### Reference-design judgment applied (per AGENTS.md, automatically)
+
+- The Figma's map used a detailed, realistic street map (real-looking road names, area labels). Reproducing that exactly would mean inventing fake geographic data — this screen keeps the same honest static-placeholder approach as Find's map instead, which matters more here, not less: precise pin placement is this screen's literal core task, so a fake-looking "real" map would be more misleading than a clearly-illustrative one.
+- Pin stays fixed (not draggable) — dragging it over placeholder content with no real geography underneath would be motion without meaning.
+
+### Bug caught and fixed this phase
+
+Dark mode contrast bug in the map's "Move map to adjust pin" hint pill: its background is a deliberately fixed dark overlay (not theme-adaptive, by design — it needs to read on top of the map in either theme), but its text color was mistakenly set to `theme.background`, which is white in light mode (fine) but flips to black in dark mode — black text on a near-black pill, invisible. Fixed to a fixed white, matching the fixed pill background. Caught by actually looking at a dark-mode screenshot, not by code review alone — worth remembering that a "theme-aware" value isn't automatically correct just because it's token-driven; it has to be paired with something that varies the same way.
+
+### What's left in this phase
+
+1. **Steps 2 and 3** (implied "Pricing" and presumably a review/submit step) don't exist yet — step 1's "Continue to Pricing" button is a TODO with nowhere to go.
+2. **Real map SDK + reverse geocoding** — same gap as Find/Search Location; this screen's "Exact Address" is a hardcoded mock, and "Edit" has nothing real to edit yet.
+3. **Photo upload** — picked photos stay local (device URIs); nothing is actually uploaded anywhere, since there's no backend/storage yet.

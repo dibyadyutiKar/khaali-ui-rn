@@ -27,21 +27,24 @@ Delete a row here the moment its TODO is resolved in code — a stale gap list i
 | Search Location | `src/screens/search-location/index.tsx` | `handleUseCurrentLocation` | "Use my current location" doesn't detect a real position — `detectedLabel` is a hardcoded string | `expo-location` (device GPS) + a reverse-geocoding API |
 | Search Location | `src/screens/search-location/index.tsx` | `handleAddPlace` | "+ Add New" under Saved Places is a no-op | A "save this place" flow, which itself needs a real address source (geocoding) first |
 | Search Location | `src/screens/search-location/index.tsx` | `handleSelectPlace` | Tapping the current-location card, a saved place, or a recent search just calls `router.back()` — the selection never reaches Find's search bar | Shared state across screens (Context, or a param round-trip) — not built for one caller; see `docs/progress.md` Phase 2 |
+| List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleEditAddress` | "Edit" next to the exact address is a no-op — the address itself is a hardcoded mock | `expo-location` + reverse-geocoding, same as Search Location's current-location gap |
+| List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleLocatePress`, `handleZoomIn`, `handleZoomOut` | Map controls are present and tappable but do nothing | Real map SDK — see "Find's map is illustrative" below, same root cause |
+| List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleContinue` | "Continue to Pricing" has nowhere to go once a cover photo is added | Steps 2 (Pricing) and 3 of the listing flow don't exist yet (not designed) |
 
 ## Missing screens (the flow currently dead-ends)
 
-- **Host / list-a-space flow.** Referenced by Welcome's "Have a parking space? Earn from it" and by the List Space tab (currently a placeholder).
+- **Listing flow, steps 2 and 3.** Step 1 ("Location & Spot") is built; presumably "Pricing" (named by step 1's own CTA) and a review/submit step are not.
 - **Support flow.** Referenced by every "Contact Khaali Support" link.
 - **Spot detail screen.** Referenced by every `SpotCard` tap on Find.
-- **Bookings / Profile real screens.** Both tabs are currently `ComingSoon` placeholders — see `docs/progress.md` Phase 2.
+- **Bookings / Profile real screens.** Both tabs are currently `ComingSoon` placeholders — see `docs/progress.md` Phase 2. (List Space is no longer in this list — it's a real entry screen now, see Phase 3.)
 - **Phone-number edit screen beyond "go back."** Tapping the phone/email chip on a Verify screen just calls `router.back()` to the entry screen — there's no dedicated edit UI, which is fine since the entry screen already serves that purpose.
 
 ## Known platform-specific quirks (not bugs — left alone on purpose)
 
 - **Web-only autofill outline.** Chrome draws its own blue autofill-recognition rectangle around the `TextInput` on Phone Entry / Email Entry, on top of the app's own focus-border styling (`src/components/text-field.tsx`). This is browser chrome, not CSS the app controls, and it cannot occur on iOS/Android — the app's actual target platforms, where there's no browser UI layer at all. Fixing it would mean disabling autofill (`autoComplete="off"`), which trades away a real convenience for users just to clean up a secondary-platform (web preview) screenshot. Left as-is; revisit only if the web build becomes a primary target.
 - **Web-only tab bar position.** `NativeTabs` (`src/app/(tabs)/_layout.tsx`) renders a real bottom tab bar on iOS/Android, but on web it falls back to a `position:fixed`, top-pinned "navigation menu" — confirmed via DOM inspection to be the library's own web shim, not a layout bug in any screen. Tab navigation itself works correctly on web (verified by direct navigation + active-state checks); only the bar's visual position differs. See `AGENTS.md` → "Rules."
-- **Find's map is illustrative, not a real map.** Same static-illustration approach as the welcome screen's map preview, with hardcoded sample pins — not a pannable map with live spot coordinates. The "center on my location" button is present and tappable but does nothing yet; it needs a real map SDK (e.g. `react-native-maps`) plus a listings backend before it can mean anything. This was a deliberate scope call, not an oversight — see `docs/progress.md` Phase 2.
+- **Maps are illustrative everywhere, not real maps.** Find, Search Location, and the listing flow's pin screen all use the same static-illustration approach (hardcoded sample content, no pannable tiles, no live coordinates) rather than a real map SDK. This is one deliberate scope call applied consistently, not three separate oversights — a real map SDK needs an API key and is real, non-speculative work once the backend exists to feed it live data. See `docs/progress.md`.
 
 ## How to use this doc
 
-When backend work starts, work the first table top to bottom — each row names the exact file and function to return to. When a screen gets built for one of the "Missing screens" entries, remove that row and update `docs/progress.md`'s Phase 2 list.
+When backend work starts, work the first table top to bottom — each row names the exact file and function to return to. When a screen gets built for one of the "Missing screens" entries, remove that row and update `docs/progress.md`'s relevant phase.

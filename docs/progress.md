@@ -110,6 +110,12 @@ Three new shared components came out of this, reused immediately by both the rea
 
 Promoted `SearchBar` to `src/components/` (out of `screens/find/`) once this second screen needed it, with one addition: an `editable` prop. `editable={false}` + `onPress` renders the identical bar as a single non-editable button that navigates (Find's usage); `editable={true}` (default) is the real field with a clear button (this screen's usage). This fixed a real bug caught in testing, not just a stylistic choice — see "Bugs found and fixed" below.
 
+**Search Results** (`src/screens/search-results/`, route `/search-results?location=<name>`) — selecting a location on Search Location (current location, a saved place, or a recent search) now pushes here with that name as a param, instead of just calling `router.back()`. This is what actually resolved the "shared location state" gap noted below in an earlier draft of this doc — not a Context/shared-state mechanism, but the simpler realization that selecting a location should navigate *forward* to results for that place, not backward into Find. Shows a sort-chip row (Nearest/Cheapest/Top rated/EV Charging, reusing the same `SelectChips` component as Find's duration filter — see below), 3 mock result cards with a real, working save/heart toggle, and a floating "Map" button that navigates to `/find`. "Book" is a TODO (no booking flow yet).
+
+Reference-design judgment applied: the Figma's header again showed stale "Profile Setup" text (same copy-pasted-frame artifact as Search Location) — dropped for the standard `Header`. The Figma itself showed real photos on 2 of 3 result cards and a plain color block on the third; rather than matching that inconsistency (or fabricating a third photo), every card uses the same honest icon-placeholder treatment — more consistent than the reference, not less. The "12 verified spots nearby" copy is computed from the actual mock result count (3) instead of copying the Figma's unrelated number.
+
+Generalized Find's `DurationFilter`-specific `FilterChips` into `src/components/select-chips.tsx` (`SelectChips<T>`) once this second screen needed the identical chip-row pattern with different options — supports both a fixed-color status dot (Find's "Now") and a semantic icon that inverts with selection (this screen's checkmark/star), since both are now real requirements, not speculative API surface.
+
 ### Known limitation (platform-specific, not a bug)
 
 `NativeTabs` renders a real bottom tab bar on iOS/Android but a `position:fixed`, top-pinned fallback on web (confirmed via DOM inspection — this is the library's own web shim, not something in this codebase). Tab navigation itself works correctly on web (verified — tapping a tab does land on the right screen with the right active state); only the tab bar's own visual position differs. See `AGENTS.md` → "Rules."
@@ -120,12 +126,12 @@ Promoted `SearchBar` to `src/components/` (out of `screens/find/`) once this sec
 
 ### What's left in this phase
 
-1. **Backend integration** — every item in `docs/gaps.md` under "Backend-dependent" needs a real API before its TODO can be resolved, Find/Search Location included.
+1. **Backend integration** — every item in `docs/gaps.md` under "Backend-dependent" needs a real API before its TODO can be resolved, Find/Search Location/Search Results included.
 2. **Real map SDK** — Find's map is a static illustration with hardcoded sample pins; swapping in `react-native-maps` (or similar) + live spot coordinates is real work, not yet started. The "center on my location" button (on Find, Search Location, and the listing flow's pin screen) is wired to nothing until this exists.
-3. **Shared location state.** Selecting a place on Search Location (current location, a saved place, a recent search) currently just calls `router.back()` — it doesn't update Find's search bar, because there's no state shared across screens yet (Context, or a param round-trip on the way back). Deliberately not built speculatively for one screen; revisit once a second place needs the same thing.
-4. **Bookings, Profile** — still placeholders; each is its own real screen to design and build. (List Space graduated out of this list in Phase 3, below.)
-5. **Support flow** — referenced from every "Contact Khaali Support" link; not yet designed.
-6. **Spot detail screen** — tapping a `SpotCard` currently goes nowhere; not yet designed.
+3. **Bookings, Profile** — still placeholders; each is its own real screen to design and build. (List Space graduated out of this list in Phase 3, below.)
+4. **Support flow** — referenced from every "Contact Khaali Support" link; not yet designed.
+5. **Spot detail screen** — tapping a `SpotCard` (Find) or `ResultCard` (Search Results) currently goes nowhere; not yet designed.
+6. **Booking flow** — tapping "Book" on a Search Results card is a TODO; not yet designed.
 
 See `AGENTS.md`'s folder-structure rules before scaffolding any of the above — `src/server/`, `src/lib/`, etc. still shouldn't exist until something real needs them.
 

@@ -5,15 +5,24 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/icon';
 import { SearchBar } from '@/components/search-bar';
+import { ChipOption, SelectChips } from '@/components/select-chips';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { DurationFilter, FilterChips } from './components/filter-chips';
 import { FindHeader } from './components/find-header';
 import { SearchMap } from './components/search-map';
 import { Spot, SpotCard } from './components/spot-card';
+
+type DurationFilter = 'now' | 'hourly' | 'daily' | 'monthly';
+
+const DURATION_OPTIONS: ChipOption<DurationFilter>[] = [
+  { id: 'now', label: 'Now', dot: true },
+  { id: 'hourly', label: 'Hourly' },
+  { id: 'daily', label: 'Daily' },
+  { id: 'monthly', label: 'Monthly' },
+];
 
 const SPOTS: Spot[] = [
   {
@@ -93,7 +102,7 @@ export function Find() {
           onPress={handleSearchPress}
           onVoicePress={handleVoicePress}
         />
-        <FilterChips selected={duration} onSelect={setDuration} />
+        <SelectChips options={DURATION_OPTIONS} selected={duration} onSelect={setDuration} />
       </View>
 
       <ScrollView

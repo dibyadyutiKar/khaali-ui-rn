@@ -24,18 +24,19 @@ Delete a row here the moment its TODO is resolved in code — a stale gap list i
 | Find | `src/screens/find/index.tsx` | `handleSortFilterPress` | "Sort & Filter" button is a no-op | Not worth building against 3 hardcoded mock spots — wire up once there's a real, larger result set |
 | Find | `src/screens/find/index.tsx` | `handleSpotPress` | Tapping a spot card goes nowhere | Spot detail screen doesn't exist yet (not designed) |
 | Search Location | `src/screens/search-location/index.tsx` | `handleVoicePress` | Mic icon is a no-op | Speech-to-text provider not chosen (same gap as Find's) |
-| Search Location | `src/screens/search-location/index.tsx` | `handleUseCurrentLocation` | "Use my current location" doesn't detect a real position — `detectedLabel` is a hardcoded string | `expo-location` (device GPS) + a reverse-geocoding API |
+| Search Location | `src/screens/search-location/index.tsx` | `handleUseCurrentLocation` | Navigates to Search Results for real, but `detectedLabel` ("Koramangala 4th Block") is a hardcoded string, not a real GPS fix | `expo-location` (device GPS) + a reverse-geocoding API |
 | Search Location | `src/screens/search-location/index.tsx` | `handleAddPlace` | "+ Add New" under Saved Places is a no-op | A "save this place" flow, which itself needs a real address source (geocoding) first |
-| Search Location | `src/screens/search-location/index.tsx` | `handleSelectPlace` | Tapping the current-location card, a saved place, or a recent search just calls `router.back()` — the selection never reaches Find's search bar | Shared state across screens (Context, or a param round-trip) — not built for one caller; see `docs/progress.md` Phase 2 |
+| Search Results | `src/screens/search-results/index.tsx` | `handleBookPress` | "Book" button is a no-op | Booking flow doesn't exist yet (not designed) |
 | List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleEditAddress` | "Edit" next to the exact address is a no-op — the address itself is a hardcoded mock | `expo-location` + reverse-geocoding, same as Search Location's current-location gap |
-| List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleLocatePress`, `handleZoomIn`, `handleZoomOut` | Map controls are present and tappable but do nothing | Real map SDK — see "Find's map is illustrative" below, same root cause |
+| List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleLocatePress`, `handleZoomIn`, `handleZoomOut` | Map controls are present and tappable but do nothing | Real map SDK — see "Maps are illustrative" below, same root cause |
 | List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleContinue` | "Continue to Pricing" has nowhere to go once a cover photo is added | Steps 2 (Pricing) and 3 of the listing flow don't exist yet (not designed) |
 
 ## Missing screens (the flow currently dead-ends)
 
 - **Listing flow, steps 2 and 3.** Step 1 ("Location & Spot") is built; presumably "Pricing" (named by step 1's own CTA) and a review/submit step are not.
+- **Booking flow.** Referenced by "Book" on every Search Results card.
 - **Support flow.** Referenced by every "Contact Khaali Support" link.
-- **Spot detail screen.** Referenced by every `SpotCard` tap on Find.
+- **Spot detail screen.** Referenced by every `SpotCard` tap on Find (Search Results' cards link to Book directly, not a detail screen, by design — a card already shows enough detail to decide).
 - **Bookings / Profile real screens.** Both tabs are currently `ComingSoon` placeholders — see `docs/progress.md` Phase 2. (List Space is no longer in this list — it's a real entry screen now, see Phase 3.)
 - **Phone-number edit screen beyond "go back."** Tapping the phone/email chip on a Verify screen just calls `router.back()` to the entry screen — there's no dedicated edit UI, which is fine since the entry screen already serves that purpose.
 

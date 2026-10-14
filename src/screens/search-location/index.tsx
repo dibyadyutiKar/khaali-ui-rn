@@ -70,19 +70,17 @@ export function SearchLocation() {
   }
 
   function handleUseCurrentLocation() {
-    // TODO: needs expo-location + a reverse-geocoding API to detect a real address, and a
-    // shared location state (Context) to carry the selection back to Find — see docs/gaps.md.
-    router.back();
+    // TODO: "Koramangala 4th Block" is the hardcoded detectedLabel below, not a real GPS fix —
+    // needs expo-location + a reverse-geocoding API. The navigation itself is real.
+    router.push({ pathname: '/search-results', params: { location: 'Koramangala 4th Block' } });
   }
 
   function handleAddPlace() {
     // TODO: build a "save this place" flow once there's a real address to save.
   }
 
-  function handleSelectPlace() {
-    // TODO: same shared-state gap as handleUseCurrentLocation — selection doesn't carry
-    // back to Find's search bar yet.
-    router.back();
+  function handleSelectPlace(name: string) {
+    router.push({ pathname: '/search-results', params: { location: name } });
   }
 
   function handleClearAllRecents() {
@@ -138,7 +136,7 @@ export function SearchLocation() {
               meta={place.meta}
               subtitle={place.subtitle}
               trailingIcon={{ sf: 'chevron.right', md: 'chevron-right' }}
-              onPress={handleSelectPlace}
+              onPress={() => handleSelectPlace(place.title)}
             />
           ))}
         </View>
@@ -173,7 +171,7 @@ export function SearchLocation() {
                 badge={item.badge}
                 subtitle={item.subtitle}
                 trailingIcon={{ sf: 'arrow.up.right', md: 'north-east' }}
-                onPress={handleSelectPlace}
+                onPress={() => handleSelectPlace(item.title)}
               />
             ))
           )}

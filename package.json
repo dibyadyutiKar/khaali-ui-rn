@@ -1,5 +1,5 @@
 {
-  "name": "khaali-ui-scaffold",
+  "name": "khaali-ui",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {

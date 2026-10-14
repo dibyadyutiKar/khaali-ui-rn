@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "khaali-ui-scaffold",
-    "slug": "khaali-ui-scaffold",
+    "name": "Khaali UI",
+    "slug": "khaali-ui",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "khaaliuiscaffold",
+    "scheme": "khaaliui",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"

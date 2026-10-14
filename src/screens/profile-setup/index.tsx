@@ -46,8 +46,9 @@ export function ProfileSetup() {
 
   function handleContinue() {
     if (!selectedRole) return;
-    // TODO: persist the chosen role once the backend exists, then land in the main app —
-    // this is currently the end of the onboarding chain.
+    // TODO: persist the chosen role once the backend exists — navigating onward already
+    // works for real below.
+    router.push('/find');
   }
 
   return (

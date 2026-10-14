@@ -1,16 +1,17 @@
 import { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Dot } from '@/components/dot';
+import { Avatar } from '@/components/avatar';
+import { BrandMark } from '@/components/brand-mark';
 import { Icon } from '@/components/icon';
-import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /**
- * The app's one nav-bar shape: back + brand mark + avatar, on every screen that has one.
- * `badge` is the only thing that varies by screen context (an encrypted-auth pill, a step
- * label, or nothing) — never rebuild this bar's structure or styling per screen.
+ * The nav-bar shape for screens with back navigation (auth/setup flow): back + brand mark +
+ * avatar. `badge` is the only thing that varies by screen context (an encrypted-auth pill,
+ * or nothing) — never rebuild this bar's structure or styling per screen. Tab-root screens
+ * (no "back" to go to) compose BrandMark/Avatar directly instead — see screens/find/.
  */
 export function Header({ onBack, badge }: { onBack: () => void; badge?: ReactNode }) {
   const theme = useTheme();
@@ -29,24 +30,12 @@ export function Header({ onBack, badge }: { onBack: () => void; badge?: ReactNod
           <Icon name={{ sf: 'chevron.left', md: 'chevron-left' }} size={18} color={theme.text} />
         </Pressable>
 
-        <View style={styles.brand}>
-          <ThemedText type="default" style={styles.brandLabel}>
-            KHAALI
-          </ThemedText>
-          <Dot color={theme.accent} size={6} />
-        </View>
+        <BrandMark />
       </View>
 
       <View style={styles.right}>
         {badge}
-
-        <View style={[styles.avatar, { backgroundColor: theme.text }]}>
-          <Icon
-            name={{ sf: 'person.fill', md: 'person' }}
-            size={16}
-            color={theme.background as string}
-          />
-        </View>
+        <Avatar />
       </View>
     </View>
   );
@@ -71,22 +60,6 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: Radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one,
-  },
-  brandLabel: {
-    fontWeight: 700,
-    letterSpacing: 0.3,
-  },
-  avatar: {
     width: 36,
     height: 36,
     borderRadius: Radius.full,

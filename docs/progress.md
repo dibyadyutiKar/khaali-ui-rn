@@ -85,13 +85,38 @@ Every screen in this phase was checked with a headless-Chrome + Chrome DevTools 
 
 ---
 
-## Phase 2 — not started
+## Phase 2 — Main app shell
 
-Candidates, in roughly the order they unblock the rest of the app:
+**Status: started.** Profile Setup now lands somewhere real — the dead-end from Phase 1 is resolved.
 
-1. **Main app / dashboard** — Profile Setup currently has nowhere to send a verified, role-selected user. This is the most load-bearing gap: nothing after onboarding can be built until this exists.
-2. **Backend integration** — every item in `docs/gaps.md` under "Backend-dependent" needs a real API before its TODO can be resolved.
-3. **Host / list-a-space flow** — referenced from Welcome, not yet designed.
-4. **Support flow** — referenced from every "Contact Khaali Support" link, not yet designed.
+### What's built
 
-Nothing in this phase has been started or scaffolded — see `AGENTS.md`'s folder-structure rules on not creating `src/server/`, `src/lib/`, etc. ahead of actual need.
+The app's first tab navigator, via `NativeTabs` (`src/app/(tabs)/_layout.tsx`), with four tabs:
+
+| Tab | Route | File | Status |
+|---|---|---|---|
+| Find | `/find` | `src/screens/find/` | Built — see below |
+| Bookings | `/bookings` | `src/app/(tabs)/bookings.tsx` | Honest placeholder (`ComingSoon`) |
+| List Space | `/list-space` | `src/app/(tabs)/list-space.tsx` | Honest placeholder (`ComingSoon`) |
+| Profile | `/profile` | `src/app/(tabs)/profile.tsx` | Honest placeholder (`ComingSoon`) |
+
+Profile Setup's "Continue" now pushes to `/find` once a role is selected, so the full chain (Welcome → … → Profile Setup → Find) is navigable end to end for the first time.
+
+**Find** (`src/screens/find/`) is the real screen built this phase — a map-based parking search home screen: branded header (notifications + avatar, no back button — this is a tab root), a search bar, a single-select duration filter row (Now/Hourly/Daily/Monthly), a static illustrative map with sample price pins (same visual language as the welcome screen's map, not a real map engine — see `docs/gaps.md`), and a scrollable list of spot cards (icon-placeholder thumbnail, price, distance/walk time, verified/open status, tags, rating). All of it is real, driven by local component state — filter selection, search text entry, and every tappable element were verified with actual clicks/typed input, not just screenshotted.
+
+Three new shared components came out of this, reused immediately by both the real screen and the three placeholders: `BrandMark` and `Avatar` (extracted out of `Header` once a second, differently-shaped header — Find's — needed the identical brand/avatar treatment), and `ComingSoon` (one honest "not built yet" screen, used 3 times rather than copy-pasted three times).
+
+### Known limitation (platform-specific, not a bug)
+
+`NativeTabs` renders a real bottom tab bar on iOS/Android but a `position:fixed`, top-pinned fallback on web (confirmed via DOM inspection — this is the library's own web shim, not something in this codebase). Tab navigation itself works correctly on web (verified — tapping a tab does land on the right screen with the right active state); only the tab bar's own visual position differs. See `AGENTS.md` → "Rules."
+
+### What's left in this phase
+
+1. **Backend integration** — every item in `docs/gaps.md` under "Backend-dependent" needs a real API before its TODO can be resolved, Find screen's included.
+2. **Real map SDK** — Find's map is a static illustration with hardcoded sample pins; swapping in `react-native-maps` (or similar) + live spot coordinates is real work, not yet started. The "center on my location" button is wired to nothing until this exists.
+3. **Bookings, List Space, Profile** — currently placeholders; each is its own real screen to design and build.
+4. **Host / list-a-space flow** — referenced from Welcome's "Have a parking space?" link and from the List Space tab; not yet designed.
+5. **Support flow** — referenced from every "Contact Khaali Support" link; not yet designed.
+6. **Spot detail screen** — tapping a `SpotCard` currently goes nowhere; not yet designed.
+
+See `AGENTS.md`'s folder-structure rules before scaffolding any of the above — `src/server/`, `src/lib/`, etc. still shouldn't exist until something real needs them.

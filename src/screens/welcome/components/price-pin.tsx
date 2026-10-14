@@ -1,10 +1,9 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
+import { Dot } from '@/components/dot';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-
-import { Dot } from './dot';
 
 /**
  * A floating price chip on the map preview. Regular pins use the surface color so they read as

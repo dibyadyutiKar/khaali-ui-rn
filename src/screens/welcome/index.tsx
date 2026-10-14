@@ -1,15 +1,16 @@
+import { useRouter } from 'expo-router';
 import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { Dot } from '@/components/dot';
+import { Pill } from '@/components/pill';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { Dot } from './components/dot';
 import { MapPreview } from './components/map-preview';
-import { Pill } from './components/pill';
 import { StatItem } from './components/stat-item';
 
 const STATS = [
@@ -21,9 +22,10 @@ const STATS = [
 export function Welcome() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   function handleContinuePress() {
-    // TODO: navigate to the phone-number auth screen once it's built.
+    router.push('/verify');
   }
 
   function handleEarnPress() {

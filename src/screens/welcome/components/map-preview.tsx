@@ -1,11 +1,11 @@
 import { ReactNode } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
+import { Dot } from '@/components/dot';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { Dot } from './dot';
 import { PricePin } from './price-pin';
 
 const ROAD_GAP = Spacing.two;

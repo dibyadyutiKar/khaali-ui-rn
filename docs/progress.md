@@ -139,26 +139,42 @@ See `AGENTS.md`'s folder-structure rules before scaffolding any of the above —
 
 ## Phase 3 — Host flow: listing a spot
 
-**Status: started (1 of 3 steps).** The List Space tab is no longer a placeholder — it's a real entry screen with a working "Get started" button into the listing wizard.
+**Status: started (2 of 3 steps).** The List Space tab is no longer a placeholder — it's a real entry screen with a working "Get started" button into the listing wizard.
 
 ### What's built
 
 - **List Space tab** (`src/screens/list-space/`) — replaces its old `ComingSoon` placeholder with real content: hero icon, headline, a one-line pitch, and a "Get started →" button that pushes into the wizard below. This closes one row from Phase 2's "what's left" list.
 - **Listing flow, step 1 of 3** (`src/screens/list-spot-location/`, route `/list-spot/location`) — "Where is your parking space?": a map-pin placeholder (same honest-illustration approach as Find's map — see below), an address card, an optional multiline entrance-instructions field, and a 5-slot photo picker (Cover, Gate Entry, Wide Angle, Pillar/Mark, Driveway). "Continue to Pricing" is disabled until a cover photo is added.
 - **Photos are genuinely functional**, not decorative — `expo-image-picker` is wired for real: tapping an empty slot requests media-library permission and opens the real system photo picker; a picked photo renders in that slot; a filled slot can be removed. This is real device capability, not backend-dependent, so it was built all the way rather than stubbed.
-- Two new shared components, justified ahead of a literal second use because the screen's own copy states there are 3 steps (not a speculative guess): `FlowHeader` (back + centered title — a third, distinct header shape alongside `Header` and `FindHeader`, for focused wizard flows) and `FlowStepProgress` (Step X of Y + a continuous fill bar, distinct from Profile Setup's discrete-segment `StepProgress` since that one only ever needs 2 segments).
+- **Listing flow, step 2 of 3** (`src/screens/list-spot-details/`, route `/list-spot/details`) — "Space details & pricing": a single-select space-type grid (Open/Covered/Basement/Stilt), multi-select vehicle-type and amenity chip rows, a spot-count stepper, an availability card (days + hours + 24×7 toggle), three rate fields, and an Instant Book toggle. "Continue" is disabled until at least one vehicle type and an hourly rate are set, and step 1's "Continue to Pricing" now actually lands here.
+- **First use of `@expo/ui`'s `Switch`** (24×7 toggle, Instant Book toggle) — wrapped in `Host matchContents` per the skill's rule that every `@expo/ui` tree needs one. Verified as a genuinely working native control (toggled via its real `input[role="switch"]`, confirmed the checked state actually flips), not just visually present.
+- Generalized `ChipOption` (from `select-chips.tsx`) into a sibling `MultiSelectChips` component (`src/components/multi-select-chips.tsx`) for the vehicle-type and amenity rows — same chip visuals as `SelectChips`, but toggling independently rather than radio-style, so it's a different component rather than a forced dual-mode API on the existing one.
+- Two new shared components from step 1, justified ahead of a literal second use because the screen's own copy states there are 3 steps (not a speculative guess): `FlowHeader` (back + centered title — a third, distinct header shape alongside `Header` and `FindHeader`, for focused wizard flows) and `FlowStepProgress` (Step X of Y + a continuous fill bar, distinct from Profile Setup's discrete-segment `StepProgress` since that one only ever needs 2 segments). Step 2 is the second real use of both, as predicted.
 
 ### Reference-design judgment applied (per AGENTS.md, automatically)
 
+Step 1:
 - The Figma's map used a detailed, realistic street map (real-looking road names, area labels). Reproducing that exactly would mean inventing fake geographic data — this screen keeps the same honest static-placeholder approach as Find's map instead, which matters more here, not less: precise pin placement is this screen's literal core task, so a fake-looking "real" map would be more misleading than a clearly-illustrative one.
 - Pin stays fixed (not draggable) — dragging it over placeholder content with no real geography underneath would be motion without meaning.
 
-### Bug caught and fixed this phase
+Step 2 (this one was flagged explicitly as disorganized, not left to inference):
+- **Moved the "Continue" button from mid-page to a sticky footer at the bottom.** The Figma placed it between the "Amenities & Security" heading and its own chip row, cutting the section in half — almost certainly a reference authoring slip, not an intentional layout, and not something to faithfully reproduce.
+- **Grouped Availability (days + hours + 24×7 toggle) into one card.** The Figma showed these as three separate elements in a flat list with no visual relationship; they're one decision a host is making, so they now read as one unit, matching how Address/OTP/Instant-Book content elsewhere already uses card grouping for related fields.
+- **Unified the step-progress label convention.** Step 1 showed a section name ("Location & Spot"); this Figma showed a raw percentage ("66% Completed") instead — redundant with the fill bar itself, and an inconsistent convention between two steps of the same flow. Kept the section-name convention ("Space & Pricing") both steps now share.
+- **Added "Optional" to the Amenities & Security heading**, matching the "Required" / "Multiple selectable" labels the two sections above it already carry — the Figma dropped it only for this one section with no evident reason.
+- Every multi-select group (vehicle types, amenities) defaults to **nothing selected**, even though the Figma's mock showed some pre-checked — defaulting a real host's form to specific vehicle types or amenities they haven't actually confirmed would be presumptuous, not a convenience.
 
-Dark mode contrast bug in the map's "Move map to adjust pin" hint pill: its background is a deliberately fixed dark overlay (not theme-adaptive, by design — it needs to read on top of the map in either theme), but its text color was mistakenly set to `theme.background`, which is white in light mode (fine) but flips to black in dark mode — black text on a near-black pill, invisible. Fixed to a fixed white, matching the fixed pill background. Caught by actually looking at a dark-mode screenshot, not by code review alone — worth remembering that a "theme-aware" value isn't automatically correct just because it's token-driven; it has to be paired with something that varies the same way.
+### A technical decision worth recording: why the time fields are a plain `TextInput`, not `@expo/ui`'s `DateTimePicker`
+
+`@expo/ui/community/datetime-picker` is the skill-recommended component for this. It was evaluated directly against its installed source: its **web implementation renders nothing (`return null`)** — a real, confirmed no-op for this project's only inspectable target in this environment, not a hypothetical. Wiring it in would mean the "From"/"To" fields simply vanish on web, with no way to verify the native iOS/Android dialog/inline behavior from here either. A plain `TextInput` (free-text, e.g. "9:00 AM") stayed instead — fully real, fully cross-platform, fully testable. Revisit once there's a way to verify the native picker's actual behavior (a device/simulator, not just web preview).
+
+### Bugs found and fixed this phase
+
+- **Dark mode contrast bug** in step 1's map "Move map to adjust pin" hint pill: its background is a deliberately fixed dark overlay (not theme-adaptive, by design — it needs to read on top of the map in either theme), but its text color was mistakenly set to `theme.background`, which is white in light mode (fine) but flips to black in dark mode — black text on a near-black pill, invisible. Fixed to a fixed white, matching the fixed pill background. Caught by actually looking at a dark-mode screenshot, not by code review alone — worth remembering that a "theme-aware" value isn't automatically correct just because it's token-driven; it has to be paired with something that varies the same way.
 
 ### What's left in this phase
 
-1. **Steps 2 and 3** (implied "Pricing" and presumably a review/submit step) don't exist yet — step 1's "Continue to Pricing" button is a TODO with nowhere to go.
-2. **Real map SDK + reverse geocoding** — same gap as Find/Search Location; this screen's "Exact Address" is a hardcoded mock, and "Edit" has nothing real to edit yet.
+1. **Step 3** (a review/submit step, presumably) doesn't exist yet — step 2's "Continue" button is a TODO with nowhere to go.
+2. **Real map SDK + reverse geocoding** — same gap as Find/Search Location; step 1's "Exact Address" is a hardcoded mock, and "Edit" has nothing real to edit yet.
 3. **Photo upload** — picked photos stay local (device URIs); nothing is actually uploaded anywhere, since there's no backend/storage yet.
+4. **Real native time picker** — see the dedicated note above; the current `TextInput` is a deliberate, documented substitution, not a forgotten TODO, but it's still worth revisiting once native verification is possible.

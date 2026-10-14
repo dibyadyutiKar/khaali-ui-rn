@@ -29,11 +29,12 @@ Delete a row here the moment its TODO is resolved in code — a stale gap list i
 | Search Results | `src/screens/search-results/index.tsx` | `handleBookPress` | "Book" button is a no-op | Booking flow doesn't exist yet (not designed) |
 | List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleEditAddress` | "Edit" next to the exact address is a no-op — the address itself is a hardcoded mock | `expo-location` + reverse-geocoding, same as Search Location's current-location gap |
 | List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleLocatePress`, `handleZoomIn`, `handleZoomOut` | Map controls are present and tappable but do nothing | Real map SDK — see "Maps are illustrative" below, same root cause |
-| List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleContinue` | "Continue to Pricing" has nowhere to go once a cover photo is added | Steps 2 (Pricing) and 3 of the listing flow don't exist yet (not designed) |
+| List a Spot (step 2) | `src/screens/list-spot-details/index.tsx` | `handleContinue` | "Continue" has nowhere to go once vehicle types + an hourly rate are set | Step 3 of the listing flow doesn't exist yet (not designed) |
+| List a Spot (step 2) | `src/screens/list-spot-location/index.tsx` | Time fields ("From" / "To") | Free-text `TextInput`, not a real time picker | See `docs/progress.md` Phase 3 — `@expo/ui`'s `DateTimePicker` renders nothing on web (confirmed in its own source), so it was deliberately not used; revisit once native (iOS/Android) verification is possible |
 
 ## Missing screens (the flow currently dead-ends)
 
-- **Listing flow, steps 2 and 3.** Step 1 ("Location & Spot") is built; presumably "Pricing" (named by step 1's own CTA) and a review/submit step are not.
+- **Listing flow, step 3.** Steps 1 ("Location & Spot") and 2 ("Space & Pricing") are built; a review/submit step presumably isn't.
 - **Booking flow.** Referenced by "Book" on every Search Results card.
 - **Support flow.** Referenced by every "Contact Khaali Support" link.
 - **Spot detail screen.** Referenced by every `SpotCard` tap on Find (Search Results' cards link to Book directly, not a detail screen, by design — a card already shows enough detail to decide).

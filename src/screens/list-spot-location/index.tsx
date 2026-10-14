@@ -79,7 +79,7 @@ export function ListSpotLocation() {
 
   function handleContinue() {
     if (!hasCoverPhoto) return;
-    // TODO: steps 2 (Pricing) and 3 don't exist yet — this flow stops here. See docs/gaps.md.
+    router.push('/list-spot/details');
   }
 
   return (

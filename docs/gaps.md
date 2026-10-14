@@ -23,6 +23,10 @@ Delete a row here the moment its TODO is resolved in code — a stale gap list i
 | Find | `src/screens/find/index.tsx` | `handleVoicePress` | Mic icon in the search bar is a no-op | Speech-to-text provider not chosen |
 | Find | `src/screens/find/index.tsx` | `handleSortFilterPress` | "Sort & Filter" button is a no-op | Not worth building against 3 hardcoded mock spots — wire up once there's a real, larger result set |
 | Find | `src/screens/find/index.tsx` | `handleSpotPress` | Tapping a spot card goes nowhere | Spot detail screen doesn't exist yet (not designed) |
+| Search Location | `src/screens/search-location/index.tsx` | `handleVoicePress` | Mic icon is a no-op | Speech-to-text provider not chosen (same gap as Find's) |
+| Search Location | `src/screens/search-location/index.tsx` | `handleUseCurrentLocation` | "Use my current location" doesn't detect a real position — `detectedLabel` is a hardcoded string | `expo-location` (device GPS) + a reverse-geocoding API |
+| Search Location | `src/screens/search-location/index.tsx` | `handleAddPlace` | "+ Add New" under Saved Places is a no-op | A "save this place" flow, which itself needs a real address source (geocoding) first |
+| Search Location | `src/screens/search-location/index.tsx` | `handleSelectPlace` | Tapping the current-location card, a saved place, or a recent search just calls `router.back()` — the selection never reaches Find's search bar | Shared state across screens (Context, or a param round-trip) — not built for one caller; see `docs/progress.md` Phase 2 |
 
 ## Missing screens (the flow currently dead-ends)
 

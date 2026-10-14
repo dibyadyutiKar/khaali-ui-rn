@@ -1,8 +1,10 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/icon';
+import { SearchBar } from '@/components/search-bar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
@@ -10,7 +12,6 @@ import { useTheme } from '@/hooks/use-theme';
 
 import { DurationFilter, FilterChips } from './components/filter-chips';
 import { FindHeader } from './components/find-header';
-import { SearchBar } from './components/search-bar';
 import { SearchMap } from './components/search-map';
 import { Spot, SpotCard } from './components/spot-card';
 
@@ -49,12 +50,16 @@ const SPOTS: Spot[] = [
 
 export function Find() {
   const theme = useTheme();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [query, setQuery] = useState('');
   const [duration, setDuration] = useState<DurationFilter>('now');
 
   function handleNotificationsPress() {
     // TODO: route to a notifications screen once that flow exists.
+  }
+
+  function handleSearchPress() {
+    router.push('/search-location');
   }
 
   function handleVoicePress() {
@@ -82,7 +87,12 @@ export function Find() {
           { paddingTop: Platform.OS === 'android' ? insets.top + Spacing.three : Spacing.three },
         ]}>
         <FindHeader onNotificationsPress={handleNotificationsPress} />
-        <SearchBar value={query} onChangeText={setQuery} onVoicePress={handleVoicePress} />
+        <SearchBar
+          value=""
+          editable={false}
+          onPress={handleSearchPress}
+          onVoicePress={handleVoicePress}
+        />
         <FilterChips selected={duration} onSelect={setDuration} />
       </View>
 

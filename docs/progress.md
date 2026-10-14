@@ -106,17 +106,26 @@ Profile Setup's "Continue" now pushes to `/find` once a role is selected, so the
 
 Three new shared components came out of this, reused immediately by both the real screen and the three placeholders: `BrandMark` and `Avatar` (extracted out of `Header` once a second, differently-shaped header — Find's — needed the identical brand/avatar treatment), and `ComingSoon` (one honest "not built yet" screen, used 3 times rather than copy-pasted three times).
 
+**Search Location** (`src/screens/search-location/`, route `/search-location`) — a dedicated full-screen location picker, pushed when Find's search bar is tapped (which is itself now a non-editable button styled as a search bar, not an inline text field — see below). Has a real editable search input with a working clear button, a "use my current location" card, a Saved Places section (Home/Work), and a removable Recent Searches list ("Clear all" genuinely empties it, down to a real empty state). All driven by real local state and verified with actual typed input and clicks, including the Find → Search Location navigation itself.
+
+Promoted `SearchBar` to `src/components/` (out of `screens/find/`) once this second screen needed it, with one addition: an `editable` prop. `editable={false}` + `onPress` renders the identical bar as a single non-editable button that navigates (Find's usage); `editable={true}` (default) is the real field with a clear button (this screen's usage). This fixed a real bug caught in testing, not just a stylistic choice — see "Bugs found and fixed" below.
+
 ### Known limitation (platform-specific, not a bug)
 
 `NativeTabs` renders a real bottom tab bar on iOS/Android but a `position:fixed`, top-pinned fallback on web (confirmed via DOM inspection — this is the library's own web shim, not something in this codebase). Tab navigation itself works correctly on web (verified — tapping a tab does land on the right screen with the right active state); only the tab bar's own visual position differs. See `AGENTS.md` → "Rules."
 
+### Bugs found and fixed this phase
+
+- **Nested interactive elements in `SearchBar`'s non-editable mode.** The first version wrapped the whole bar (including the inner mic `Pressable`) in an outer `Pressable` for the "navigate on tap" mode — on web this rendered a `<button>` inside a `<button>`, invalid HTML that React flagged as a hydration-risk console error. Caught by checking the browser console after interaction, not by looking at a screenshot. Fixed by making the mic icon decorative (plain `Icon`, no nested `Pressable`) whenever the bar itself is the single tappable element; confirmed fixed by directly querying the DOM for nested `<button>` elements (zero), not by the console going quiet (a stale warning from the same long-lived tab initially made it look unfixed — re-verified with a fresh browser profile).
+
 ### What's left in this phase
 
-1. **Backend integration** — every item in `docs/gaps.md` under "Backend-dependent" needs a real API before its TODO can be resolved, Find screen's included.
-2. **Real map SDK** — Find's map is a static illustration with hardcoded sample pins; swapping in `react-native-maps` (or similar) + live spot coordinates is real work, not yet started. The "center on my location" button is wired to nothing until this exists.
-3. **Bookings, List Space, Profile** — currently placeholders; each is its own real screen to design and build.
-4. **Host / list-a-space flow** — referenced from Welcome's "Have a parking space?" link and from the List Space tab; not yet designed.
-5. **Support flow** — referenced from every "Contact Khaali Support" link; not yet designed.
-6. **Spot detail screen** — tapping a `SpotCard` currently goes nowhere; not yet designed.
+1. **Backend integration** — every item in `docs/gaps.md` under "Backend-dependent" needs a real API before its TODO can be resolved, Find/Search Location included.
+2. **Real map SDK** — Find's map is a static illustration with hardcoded sample pins; swapping in `react-native-maps` (or similar) + live spot coordinates is real work, not yet started. The "center on my location" button (on both Find and Search Location) is wired to nothing until this exists.
+3. **Shared location state.** Selecting a place on Search Location (current location, a saved place, a recent search) currently just calls `router.back()` — it doesn't update Find's search bar, because there's no state shared across screens yet (Context, or a param round-trip on the way back). Deliberately not built speculatively for one screen; revisit once a second place needs the same thing.
+4. **Bookings, List Space, Profile** — currently placeholders; each is its own real screen to design and build.
+5. **Host / list-a-space flow** — referenced from Welcome's "Have a parking space?" link and from the List Space tab; not yet designed.
+6. **Support flow** — referenced from every "Contact Khaali Support" link; not yet designed.
+7. **Spot detail screen** — tapping a `SpotCard` currently goes nowhere; not yet designed.
 
 See `AGENTS.md`'s folder-structure rules before scaffolding any of the above — `src/server/`, `src/lib/`, etc. still shouldn't exist until something real needs them.

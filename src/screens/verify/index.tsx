@@ -3,6 +3,7 @@ import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { EncryptedBadge } from '@/components/encrypted-badge';
 import { Header } from '@/components/header';
 import { Icon } from '@/components/icon';
 import { Keypad } from '@/components/keypad';
@@ -67,7 +68,7 @@ export function Verify() {
             paddingBottom: Platform.OS === 'ios' ? Spacing.four : insets.bottom + Spacing.four,
           },
         ]}>
-        <Header onBack={() => router.back()} />
+        <Header onBack={() => router.back()} badge={<EncryptedBadge />} />
 
         <Pill tone="accentMuted" style={styles.sectionBadge}>
           <Icon name={{ sf: 'checkmark.shield.fill', md: 'verified-user' }} size={12} color={theme.accent} />

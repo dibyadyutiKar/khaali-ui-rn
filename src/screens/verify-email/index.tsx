@@ -3,6 +3,7 @@ import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { EncryptedBadge } from '@/components/encrypted-badge';
 import { Header } from '@/components/header';
 import { Icon } from '@/components/icon';
 import { Keypad } from '@/components/keypad';
@@ -30,8 +31,9 @@ export function VerifyEmail() {
 
   function handleVerify() {
     if (!isComplete) return;
-    // TODO: verify the code against the backend once it exists, then enter the main app —
-    // phone and email are now both collected and this is the end of the linked-signup flow.
+    // TODO: verify the code against the backend once it exists. Phone and email are now
+    // both collected, so continue on to profile setup.
+    router.push('/profile-setup');
   }
 
   function handleEditEmail() {
@@ -56,7 +58,7 @@ export function VerifyEmail() {
             paddingBottom: Platform.OS === 'ios' ? Spacing.four : insets.bottom + Spacing.four,
           },
         ]}>
-        <Header onBack={() => router.back()} />
+        <Header onBack={() => router.back()} badge={<EncryptedBadge />} />
 
         <Pill tone="accentMuted" style={styles.sectionBadge}>
           <Icon name={{ sf: 'checkmark.shield.fill', md: 'verified-user' }} size={12} color={theme.accent} />

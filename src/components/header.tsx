@@ -1,13 +1,18 @@
+import { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Dot } from '@/components/dot';
 import { Icon } from '@/components/icon';
-import { Pill } from '@/components/pill';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-export function Header({ onBack }: { onBack: () => void }) {
+/**
+ * The app's one nav-bar shape: back + brand mark + avatar, on every screen that has one.
+ * `badge` is the only thing that varies by screen context (an encrypted-auth pill, a step
+ * label, or nothing) — never rebuild this bar's structure or styling per screen.
+ */
+export function Header({ onBack, badge }: { onBack: () => void; badge?: ReactNode }) {
   const theme = useTheme();
 
   return (
@@ -33,12 +38,7 @@ export function Header({ onBack }: { onBack: () => void }) {
       </View>
 
       <View style={styles.right}>
-        <Pill tone="infoMuted" style={styles.encryptedPill}>
-          <Icon name={{ sf: 'lock.shield', md: 'security' }} size={12} color={theme.text} />
-          <ThemedText type="small" numberOfLines={1} style={styles.encryptedLabel}>
-            256-bit encrypted
-          </ThemedText>
-        </Pill>
+        {badge}
 
         <View style={[styles.avatar, { backgroundColor: theme.text }]}>
           <Icon
@@ -85,12 +85,6 @@ const styles = StyleSheet.create({
   brandLabel: {
     fontWeight: 700,
     letterSpacing: 0.3,
-  },
-  encryptedPill: {
-    flexShrink: 1,
-  },
-  encryptedLabel: {
-    fontWeight: 600,
   },
   avatar: {
     width: 36,

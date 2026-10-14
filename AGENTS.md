@@ -8,6 +8,10 @@ Expo ships breaking changes every SDK release. APIs you remember are likely rena
 2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v57.0.0/`
 3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
 
+## Project context
+
+`docs/progress.md` tracks what's been built, phase by phase. `docs/gaps.md` indexes every TODO left in the code because it needs a backend or a screen that doesn't exist yet — check it before assuming something is unfinished by accident. Read both before starting new screen work; update both when you finish a phase or resolve a gap.
+
 ## Stack
 
 - Expo SDK 57, Expo Router (file-based), TypeScript (strict), React 19 / React Native 0.86.
@@ -80,6 +84,16 @@ Rules:
 - A literal (color, spacing, radius) that appears twice belongs in `theme.ts`, not copy-pasted.
 - Rounded corners use `{ borderCurve: 'continuous' }` (not a plain `borderRadius` alone); shadows use `boxShadow` style strings — never legacy `shadowColor`/`elevation`.
 
+## Working from a reference design
+
+Every screen built from a screenshot/Figma gets this pass automatically — don't wait to be asked per screen:
+
+- **The reference is ~90% fidelity, not a pixel contract.** Match its structure and intent; use judgment on exact spacing, and feel free to diverge where this app's own conventions say otherwise.
+- **Reuse this app's chrome over the reference's.** If the reference shows a header/nav bar, check whether `Header` (or any other already-shipped component) covers it before building a one-off that matches the screenshot's specific styling. A screen-specific badge/label is fine as a slot *inside* the shared component (see `Header`'s `badge` prop); a second header layout, button style, or card treatment is not. When a reference's chrome conflicts with what's already shipped, the shipped version wins — flag the conflict in your summary rather than forking it.
+- **Cut decoration that doesn't serve this screen's task.** Trust badges, stat tickers, or flourishes already established elsewhere in the app (e.g. the welcome screen's stats) don't need to repeat on every subsequent screen just because the reference shows them again. Keep what the user needs to complete the screen's one job; cut what's there to make the mock look finished.
+- **Never copy an emoji icon from the reference.** Swap it for a real `Icon` (SF Symbol + Material) even when the source design uses emoji — see Components below.
+- **Say what you changed and why**, briefly, in your summary — the user should be able to see the judgment calls, not just the result.
+
 ## Responsive & cross-device layout
 
 Every screen must hold up on a small phone, a large phone, a tablet, and web — there is no single fixed target device.
@@ -102,6 +116,7 @@ Every screen must hold up on a small phone, a large phone, a tablet, and web —
 
 ## Components
 
+- For any icon, use `Icon` from `src/components/icon.tsx` — it already does the SF-Symbol-on-iOS / Material-on-Android split (`<Icon name={{ sf: '...', md: '...' }} />`). Never emoji as an icon, never a single-platform icon library.
 - Check `@expo/ui` first for any sheet, picker, slider, toggle, menu, or grouped-form section (`BottomSheet`, `Switch`, `Slider`, `Menu`, `FieldGroup`, `List`/`ListItem`) before a React Native built-in or a community library.
 - `@expo/ui`'s `List` renders native grouped rows (fixed-length, e.g. settings) — it is not virtualized. Use `FlatList`/`FlashList` for feeds, search results, or anything of unknown length.
 - Never use `Picker`, `WebView`, `SafeAreaView`, or `AsyncStorage` imported from `react-native` — they're removed/legacy. Use `react-native-safe-area-context`, `@expo/ui` pickers, and `@react-native-async-storage/async-storage` / `expo-secure-store` instead.

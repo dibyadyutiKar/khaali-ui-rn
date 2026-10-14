@@ -4,6 +4,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { EncryptedBadge } from '@/components/encrypted-badge';
 import { Header } from '@/components/header';
 import { Icon } from '@/components/icon';
 import { Pill } from '@/components/pill';
@@ -51,7 +52,7 @@ export function EmailEntry() {
               paddingBottom: Platform.OS === 'ios' ? Spacing.four : insets.bottom + Spacing.four,
             },
           ]}>
-          <Header onBack={() => router.back()} />
+          <Header onBack={() => router.back()} badge={<EncryptedBadge />} />
 
           <Pill tone="accentMuted" style={styles.sectionBadge}>
             <Icon name={{ sf: 'envelope.fill', md: 'email' }} size={12} color={theme.accent} />

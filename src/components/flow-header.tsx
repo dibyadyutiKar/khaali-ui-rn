@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/icon';
@@ -6,12 +7,20 @@ import { Radius } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /**
- * Minimal header for a focused multi-step flow (back + centered title, no brand/avatar) —
- * distinct from Header (auth/setup, back + brand + avatar) and FindHeader (tab root, brand
- * + avatar, no back). Built as shared now, not after a second use, because this flow's own
- * copy states it has 3 steps — the reuse is a certainty, not a guess.
+ * Minimal header for a focused multi-step flow (back + centered title), distinct from Header
+ * (auth/setup, back + brand + avatar) and FindHeader (tab root, brand + avatar, no back).
+ * `right` is an optional slot (e.g. Avatar) for flows that want one — the listing wizard
+ * doesn't, checkout does; defaults to a plain spacer so the title stays centered either way.
  */
-export function FlowHeader({ title, onBack }: { title: string; onBack: () => void }) {
+export function FlowHeader({
+  title,
+  onBack,
+  right,
+}: {
+  title: string;
+  onBack: () => void;
+  right?: ReactNode;
+}) {
   const theme = useTheme();
 
   return (
@@ -28,7 +37,7 @@ export function FlowHeader({ title, onBack }: { title: string; onBack: () => voi
         {title}
       </ThemedText>
 
-      <View style={styles.spacer} />
+      {right ?? <View style={styles.spacer} />}
     </View>
   );
 }

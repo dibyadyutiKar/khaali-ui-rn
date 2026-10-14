@@ -82,8 +82,11 @@ export function SearchResults() {
     setSavedIds((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
   }
 
-  function handleBookPress() {
-    // TODO: booking flow doesn't exist yet — see docs/gaps.md.
+  function handleBookPress(result: SearchResult) {
+    router.push({
+      pathname: '/checkout',
+      params: { spotTitle: result.title, pricePerHour: result.pricePerHour.replace('₹', '') },
+    });
   }
 
   function handleShowMap() {
@@ -138,7 +141,7 @@ export function SearchResults() {
               result={result}
               saved={savedIds.includes(result.id)}
               onToggleSave={() => toggleSave(result.id)}
-              onBookPress={handleBookPress}
+              onBookPress={() => handleBookPress(result)}
             />
           ))}
         </View>

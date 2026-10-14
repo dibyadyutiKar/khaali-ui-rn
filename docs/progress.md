@@ -178,3 +178,32 @@ Step 2 (this one was flagged explicitly as disorganized, not left to inference):
 2. **Real map SDK + reverse geocoding** — same gap as Find/Search Location; step 1's "Exact Address" is a hardcoded mock, and "Edit" has nothing real to edit yet.
 3. **Photo upload** — picked photos stay local (device URIs); nothing is actually uploaded anywhere, since there's no backend/storage yet.
 4. **Real native time picker** — see the dedicated note above; the current `TextInput` is a deliberate, documented substitution, not a forgotten TODO, but it's still worth revisiting once native verification is possible.
+
+---
+
+## Phase 4 — Booking: checkout
+
+**Status: started.** Reached by tapping "Book" on a Search Results card, which was a TODO as of the last commit — the spot's title and hourly rate are now passed through as real route params (`spotTitle`, `pricePerHour`), not just a hardcoded screen.
+
+### What's built
+
+**Checkout** (`src/screens/checkout/`, route `/checkout?spotTitle=<name>&pricePerHour=<rate>`) — a single, long screen covering the spot summary, schedule & vehicle, payment method, fare summary, and trust messaging. Most of it is a genuine, compounding fare calculator, not static mock numbers:
+
+- **Extend Duration** (+1 hr / +2 hrs / Reset) recomputes the exit time and the base-parking line together.
+- **EV charging toggle** (first second use of `@expo/ui`'s `Switch`, after step 2 of the listing flow) adds/removes its ₹45 line from the fare summary entirely, not just visually.
+- **Khaali Credits checkbox** applies a real discount, capped correctly at `min(available balance, max-apply, subtotal)` — verified the cap holds, not just that *a* discount appears.
+- **Payment method** is a real single-select radio group (UPI / Card / Cash / Net Banking); selecting UPI reveals its own sub-panel (quick-app buttons + a real UPI-ID `TextInput` + a Verify button gated on non-empty input) and deselecting it collapses the panel entirely, not just visually hides it.
+- The footer's total and the "Pay & Reserve • ₹X" button label both read from the same single computed `total`, so every toggle above is reflected in both places at once — verified by compounding four interactions in one pass (extend duration → turn off EV → apply credits → switch payment method) and confirming the fare summary line items, not just the final total, updated correctly at each step.
+
+`FlowHeader` (from the listing wizard) gained an optional `right` slot for this screen's Avatar — the wizard doesn't want one, checkout does; kept as one component with a slot rather than forking a near-duplicate header.
+
+### Reference-design judgment applied
+
+This Figma was already well-organized (unlike listing-flow step 2) — no layout bugs to fix. The one deliberate addition: reused the existing `EncryptedBadge` component for the "256-bit encrypted" badge next to "Payment Method," since it's pixel-identical to the one already used across every auth screen — not rebuilt from scratch just because it appeared in a new context.
+
+### What's left in this phase
+
+1. **Payment backend** — "Pay & Reserve" is a TODO; there's no payment processor integration, and nothing to actually reserve the bay against yet.
+2. **UPI verification** — the "Verify" button next to the UPI ID field is a TODO; no backend to check a UPI ID against.
+3. **Vehicle management** — "Change" next to the vehicle card is a TODO; there's no screen yet to pick a different saved vehicle or add one.
+4. **Everything else carried from the spot the user tapped "Book" on** — only title and hourly rate make the trip from Search Results today. Bay number, address, host-verification copy, and the vehicle itself are all still representative mock data, consistent with how earlier screens handle data not yet backed by a real source.

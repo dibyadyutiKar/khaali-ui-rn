@@ -26,16 +26,18 @@ Delete a row here the moment its TODO is resolved in code — a stale gap list i
 | Search Location | `src/screens/search-location/index.tsx` | `handleVoicePress` | Mic icon is a no-op | Speech-to-text provider not chosen (same gap as Find's) |
 | Search Location | `src/screens/search-location/index.tsx` | `handleUseCurrentLocation` | Navigates to Search Results for real, but `detectedLabel` ("Koramangala 4th Block") is a hardcoded string, not a real GPS fix | `expo-location` (device GPS) + a reverse-geocoding API |
 | Search Location | `src/screens/search-location/index.tsx` | `handleAddPlace` | "+ Add New" under Saved Places is a no-op | A "save this place" flow, which itself needs a real address source (geocoding) first |
-| Search Results | `src/screens/search-results/index.tsx` | `handleBookPress` | "Book" button is a no-op | Booking flow doesn't exist yet (not designed) |
 | List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleEditAddress` | "Edit" next to the exact address is a no-op — the address itself is a hardcoded mock | `expo-location` + reverse-geocoding, same as Search Location's current-location gap |
 | List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleLocatePress`, `handleZoomIn`, `handleZoomOut` | Map controls are present and tappable but do nothing | Real map SDK — see "Maps are illustrative" below, same root cause |
 | List a Spot (step 2) | `src/screens/list-spot-details/index.tsx` | `handleContinue` | "Continue" has nowhere to go once vehicle types + an hourly rate are set | Step 3 of the listing flow doesn't exist yet (not designed) |
 | List a Spot (step 2) | `src/screens/list-spot-location/index.tsx` | Time fields ("From" / "To") | Free-text `TextInput`, not a real time picker | See `docs/progress.md` Phase 3 — `@expo/ui`'s `DateTimePicker` renders nothing on web (confirmed in its own source), so it was deliberately not used; revisit once native (iOS/Android) verification is possible |
+| Checkout | `src/screens/checkout/index.tsx` | `handlePayAndReserve` | "Pay & Reserve" is a no-op — the displayed total is real and fully computed, but nothing is actually charged or reserved | Payment processor integration + a reservations endpoint |
+| Checkout | `src/screens/checkout/index.tsx` | `handleVerifyUpi` | "Verify" next to the UPI ID field is a no-op | No backend to check a UPI ID against |
+| Checkout | `src/screens/checkout/index.tsx` | `handleChangeVehicle` | "Change" next to the vehicle card is a no-op | Vehicle-management screen doesn't exist yet (not designed) |
 
 ## Missing screens (the flow currently dead-ends)
 
 - **Listing flow, step 3.** Steps 1 ("Location & Spot") and 2 ("Space & Pricing") are built; a review/submit step presumably isn't.
-- **Booking flow.** Referenced by "Book" on every Search Results card.
+- **Vehicle management.** Referenced by "Change" on Checkout's vehicle card.
 - **Support flow.** Referenced by every "Contact Khaali Support" link.
 - **Spot detail screen.** Referenced by every `SpotCard` tap on Find (Search Results' cards link to Book directly, not a detail screen, by design — a card already shows enough detail to decide).
 - **Bookings / Profile real screens.** Both tabs are currently `ComingSoon` placeholders — see `docs/progress.md` Phase 2. (List Space is no longer in this list — it's a real entry screen now, see Phase 3.)

@@ -19,11 +19,13 @@ export function OtpCard({
   secondsLeft,
   totalSeconds,
   onResend,
+  resendLabel = 'Resend via SMS',
 }: {
   digits: string[];
   secondsLeft: number;
   totalSeconds: number;
   onResend: () => void;
+  resendLabel?: string;
 }) {
   const theme = useTheme();
   const activeIndex = digits.findIndex((d) => d === '');
@@ -70,7 +72,7 @@ export function OtpCard({
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Resend via SMS"
+          accessibilityLabel={resendLabel}
           accessibilityState={{ disabled: !canResend }}
           disabled={!canResend}
           onPress={onResend}
@@ -79,7 +81,7 @@ export function OtpCard({
             type="small"
             themeColor={canResend ? 'accent' : 'textSecondary'}
             style={[styles.resendLabel, !canResend && styles.resendLabelDisabled]}>
-            Resend via SMS
+            {resendLabel}
           </ThemedText>
         </Pressable>
       </View>

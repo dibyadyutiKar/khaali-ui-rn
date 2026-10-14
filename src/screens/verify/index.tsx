@@ -1,77 +1,43 @@
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { Header } from '@/components/header';
 import { Icon } from '@/components/icon';
+import { Keypad } from '@/components/keypad';
+import { OtpCard } from '@/components/otp-card';
 import { Pill } from '@/components/pill';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { TrustFooter } from '@/components/trust-footer';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { useOtpInput } from '@/hooks/use-otp-input';
 import { useTheme } from '@/hooks/use-theme';
 
 import { AccessibleRoutes } from './components/accessible-routes';
-import { Header } from './components/header';
-import { Keypad } from './components/keypad';
-import { OtpCard } from './components/otp-card';
-import { TrustFooter } from './components/trust-footer';
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
-const PHONE_NUMBER = '+91 98765 43210';
 
 export function Verify() {
   const router = useRouter();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const { phone } = useLocalSearchParams<{ phone?: string }>();
+  const phoneNumber = phone || '+91 98765 43210';
 
-  const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
-  const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
-
-  useEffect(() => {
-    if (secondsLeft === 0) return;
-    const timeout = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
-    return () => clearTimeout(timeout);
-  }, [secondsLeft]);
-
-  const isComplete = digits.every((d) => d !== '');
-
-  function handleDigit(digit: string) {
-    const index = digits.findIndex((d) => d === '');
-    if (index === -1) return;
-    const next = [...digits];
-    next[index] = digit;
-    setDigits(next);
-  }
-
-  function handleDelete() {
-    let index = -1;
-    for (let i = OTP_LENGTH - 1; i >= 0; i--) {
-      if (digits[i] !== '') {
-        index = i;
-        break;
-      }
-    }
-    if (index === -1) return;
-    const next = [...digits];
-    next[index] = '';
-    setDigits(next);
-  }
-
-  function handleResend() {
-    if (secondsLeft > 0) return;
-    setSecondsLeft(RESEND_SECONDS);
-    setDigits(Array(OTP_LENGTH).fill(''));
-  }
+  const { digits, secondsLeft, isComplete, handleDigit, handleDelete, handleResend } =
+    useOtpInput(OTP_LENGTH, RESEND_SECONDS);
 
   function handleVerify() {
     if (!isComplete) return;
-    // TODO: verify the code against the backend once it exists, then navigate onward.
+    // TODO: verify the code against the backend once it exists. For now, continue the
+    // signup flow onward to linking an email address.
+    router.push('/email');
   }
 
   function handleEditPhone() {
-    // TODO: route back to phone-number entry once that screen exists.
     router.back();
   }
 
@@ -117,12 +83,12 @@ export function Verify() {
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Edit phone number ${PHONE_NUMBER}`}
+          accessibilityLabel={`Edit phone number ${phoneNumber}`}
           onPress={handleEditPhone}
           style={({ pressed }) => [styles.phoneChipWrapper, { opacity: pressed ? 0.7 : 1 }]}>
           <Pill tone="infoMuted">
             <ThemedText type="smallBold" selectable>
-              {PHONE_NUMBER}
+              {phoneNumber}
             </ThemedText>
             <Icon name={{ sf: 'pencil', md: 'edit' }} size={13} color={theme.textSecondary} />
           </Pill>
@@ -146,7 +112,10 @@ export function Verify() {
 
         <Button title="Verify & Continue →" disabled={!isComplete} onPress={handleVerify} />
 
-        <TrustFooter onContactSupport={handleContactSupport} />
+        <TrustFooter
+          message="Never share your OTP with anyone. Khaali officials will never request this code."
+          onContactSupport={handleContactSupport}
+        />
       </ScrollView>
     </ThemedView>
   );

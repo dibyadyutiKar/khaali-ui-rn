@@ -25,7 +25,13 @@ export function Welcome() {
   const router = useRouter();
 
   function handleContinuePress() {
-    router.push('/verify');
+    router.push('/phone');
+  }
+
+  function handleGooglePress() {
+    // TODO: wire real Google OAuth once the backend exists. Google already verifies email,
+    // so this path should skip straight to /phone to collect and verify the other half of
+    // the linked identity.
   }
 
   function handleEarnPress() {
@@ -78,7 +84,25 @@ export function Welcome() {
           ))}
         </ThemedView>
 
-        <Button title="Continue with phone number →" onPress={handleContinuePress} />
+        <View style={styles.actions}>
+          <Button title="Continue with phone number →" onPress={handleContinuePress} />
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Continue with Google"
+            onPress={handleGooglePress}
+            style={({ pressed }) => [
+              styles.googleButton,
+              { borderColor: theme.backgroundSelected, opacity: pressed ? 0.7 : 1 },
+            ]}>
+            <ThemedText type="default" style={styles.googleG}>
+              G
+            </ThemedText>
+            <ThemedText type="default" style={styles.googleLabel}>
+              Continue with Google
+            </ThemedText>
+          </Pressable>
+        </View>
 
         <Pressable
           accessibilityRole="link"
@@ -135,6 +159,28 @@ const styles = StyleSheet.create({
     width: 1,
     alignSelf: 'stretch',
     marginVertical: Spacing.half,
+  },
+  actions: {
+    gap: Spacing.two,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
+    paddingVertical: Spacing.three,
+    borderRadius: Radius.full,
+    borderCurve: 'continuous',
+    borderWidth: 2,
+  },
+  googleG: {
+    fontWeight: 700,
+    // Brand-neutral placeholder — swap for the real Google "G" mark once Google Sign-In
+    // is actually wired up.
+    color: '#4285F4',
+  },
+  googleLabel: {
+    fontWeight: 600,
   },
   earnLink: {
     alignSelf: 'center',

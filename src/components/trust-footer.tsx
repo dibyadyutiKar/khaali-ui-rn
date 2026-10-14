@@ -5,7 +5,13 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-export function TrustFooter({ onContactSupport }: { onContactSupport: () => void }) {
+export function TrustFooter({
+  message,
+  onContactSupport,
+}: {
+  message: string;
+  onContactSupport: () => void;
+}) {
   const theme = useTheme();
 
   return (
@@ -18,7 +24,7 @@ export function TrustFooter({ onContactSupport }: { onContactSupport: () => void
       </View>
 
       <ThemedText type="small" themeColor="textSecondary" style={styles.body}>
-        Never share your OTP with anyone. Khaali officials will never request this code.
+        {message}
       </ThemedText>
 
       <Pressable accessibilityRole="link" onPress={onContactSupport} hitSlop={Spacing.one}>

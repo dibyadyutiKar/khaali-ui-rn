@@ -18,20 +18,17 @@ export function FlowStepProgress({
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <ThemedText type="small" themeColor="textSecondary" style={styles.stepLabel}>
+        <ThemedText type="label" themeColor="textSecondary">
           Step {step} of {totalSteps}
         </ThemedText>
-        <ThemedText type="small" themeColor="accent" style={styles.sectionLabel}>
+        <ThemedText type="smallBold" themeColor="textSecondary" numberOfLines={1} style={styles.section}>
           {label}
         </ThemedText>
       </View>
 
       <View style={[styles.track, { backgroundColor: theme.backgroundSelected }]}>
         <View
-          style={[
-            styles.fill,
-            { backgroundColor: theme.text, width: `${(step / totalSteps) * 100}%` },
-          ]}
+          style={[styles.fill, { backgroundColor: theme.text, width: `${(step / totalSteps) * 100}%` }]}
         />
       </View>
     </View>
@@ -40,20 +37,16 @@ export function FlowStepProgress({
 
 const styles = StyleSheet.create({
   container: {
-    gap: Spacing.one,
+    gap: Spacing.two,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: Spacing.two,
   },
-  stepLabel: {
-    fontWeight: 700,
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
-  },
-  sectionLabel: {
-    fontWeight: 700,
+  section: {
+    flexShrink: 1,
   },
   track: {
     height: 4,

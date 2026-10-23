@@ -1,192 +1,72 @@
 import { useRouter } from 'expo-router';
-import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { BrandMark } from '@/components/brand-mark';
 import { Button } from '@/components/button';
-import { Dot } from '@/components/dot';
-import { Pill } from '@/components/pill';
+import { FormScreen } from '@/components/form-screen';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { Spacing } from '@/constants/theme';
 
 import { MapPreview } from './components/map-preview';
-import { StatItem } from './components/stat-item';
-
-const STATS = [
-  { value: '1,400+', label: 'Spaces in BLR' },
-  { value: '100%', label: 'Gated & Safe' },
-  { value: '2 Mins', label: 'Avg Booking' },
-] as const;
 
 export function Welcome() {
-  const theme = useTheme();
-  const insets = useSafeAreaInsets();
   const router = useRouter();
-
-  function handleContinuePress() {
-    router.push('/phone');
-  }
 
   function handleGooglePress() {
     // TODO: wire real Google OAuth once the backend exists. Google already verifies email,
-    // so this path should skip straight to /phone to collect and verify the other half of
-    // the linked identity.
-  }
-
-  function handleEarnPress() {
-    // TODO: navigate to the host/list-your-space flow once it's built.
+    // so this path should skip straight to /phone to collect the other half of the identity.
   }
 
   return (
-    <ThemedView style={styles.screen}>
-      <ScrollView
-        style={styles.scroll}
-        contentInsetAdjustmentBehavior="automatic"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: Platform.OS === 'android' ? insets.top + Spacing.three : Spacing.three,
-            paddingBottom: Platform.OS === 'ios' ? Spacing.four : insets.bottom + Spacing.four,
-          },
-        ]}>
-        <View style={styles.statusRow}>
-          <Pill>
-            <Dot color={theme.accent} size={6} />
-            <ThemedText type="small" style={styles.statusLabel}>
-              Bengaluru Active
-            </ThemedText>
-          </Pill>
-        </View>
+    <FormScreen>
+      <BrandMark />
 
-        <MapPreview style={styles.map} />
+      <MapPreview style={styles.map} />
 
-        <Pill style={styles.hyperlocalPill}>
-          <ThemedText type="label" themeColor="accent">
-            ✓ Hyperlocal spaces
-          </ThemedText>
-        </Pill>
-
+      <View style={styles.copy}>
         <ThemedText type="headline">Parking, wherever you&apos;re going.</ThemedText>
         <ThemedText type="default" themeColor="textSecondary">
           Book verified private parking by the hour, day or month.
         </ThemedText>
+      </View>
 
-        <ThemedView type="backgroundElement" style={styles.statsRow}>
-          {STATS.map((stat, index) => (
-            <View key={stat.label} style={styles.statItemWrapper}>
-              {index > 0 && (
-                <View style={[styles.divider, { backgroundColor: theme.backgroundSelected }]} />
-              )}
-              <StatItem value={stat.value} label={stat.label} />
-            </View>
-          ))}
-        </ThemedView>
-
-        <View style={styles.actions}>
-          <Button title="Continue with phone number →" onPress={handleContinuePress} />
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Continue with Google"
-            onPress={handleGooglePress}
-            style={({ pressed }) => [
-              styles.googleButton,
-              { borderColor: theme.backgroundSelected, opacity: pressed ? 0.7 : 1 },
-            ]}>
-            <ThemedText type="default" style={styles.googleG}>
-              G
-            </ThemedText>
-            <ThemedText type="default" style={styles.googleLabel}>
-              Continue with Google
-            </ThemedText>
-          </Pressable>
-        </View>
+      <View style={styles.actions}>
+        <Button title="Continue with phone number" onPress={() => router.push('/phone')} />
+        <Button title="Continue with Google" variant="secondary" onPress={handleGooglePress} />
 
         <Pressable
           accessibilityRole="link"
-          onPress={handleEarnPress}
+          onPress={() => router.push('/list-spot/location')}
+          hitSlop={Spacing.two}
           style={({ pressed }) => [styles.earnLink, { opacity: pressed ? 0.6 : 1 }]}>
-          <ThemedText type="default" themeColor="accent" style={styles.earnLinkLabel}>
-            Have a parking space? Earn from it →
+          <ThemedText type="smallBold" themeColor="textSecondary" style={styles.earnLabel}>
+            Have a parking space? Earn from it
           </ThemedText>
         </Pressable>
-      </ScrollView>
-    </ThemedView>
+      </View>
+    </FormScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  scroll: {
-    flex: 1,
-  },
-  content: {
-    width: '100%',
-    maxWidth: MaxContentWidth,
-    alignSelf: 'center',
-    paddingHorizontal: Spacing.three,
-    gap: Spacing.three,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  statusLabel: {
-    fontWeight: 600,
-  },
+  // Fills whatever height the copy and buttons leave, so tall phones get a bigger map
+  // instead of an empty gap; the min keeps it a real illustration on small ones.
   map: {
-    width: '100%',
-  },
-  hyperlocalPill: {
-    marginTop: Spacing.one,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    borderRadius: Radius.lg,
-    borderCurve: 'continuous',
-    paddingVertical: Spacing.three,
-  },
-  statItemWrapper: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    minHeight: 200,
   },
-  divider: {
-    width: 1,
-    alignSelf: 'stretch',
-    marginVertical: Spacing.half,
+  copy: {
+    gap: Spacing.two,
   },
   actions: {
     gap: Spacing.two,
   },
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.two,
-    paddingVertical: Spacing.three,
-    borderRadius: Radius.full,
-    borderCurve: 'continuous',
-    borderWidth: 2,
-  },
-  googleG: {
-    fontWeight: 700,
-    // Brand-neutral placeholder — swap for the real Google "G" mark once Google Sign-In
-    // is actually wired up.
-    color: '#4285F4',
-  },
-  googleLabel: {
-    fontWeight: 600,
-  },
   earnLink: {
     alignSelf: 'center',
+    marginTop: Spacing.two,
   },
-  earnLinkLabel: {
-    fontWeight: 600,
+  earnLabel: {
     textAlign: 'center',
+    textDecorationLine: 'underline',
   },
 });

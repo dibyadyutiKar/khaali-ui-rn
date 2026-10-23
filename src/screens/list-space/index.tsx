@@ -1,11 +1,9 @@
 import { useRouter } from 'expo-router';
-import { Platform, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { Avatar } from '@/components/avatar';
-import { BrandMark } from '@/components/brand-mark';
 import { Button } from '@/components/button';
 import { Icon } from '@/components/icon';
+import { TabHeader } from '@/components/tab-header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
@@ -14,37 +12,41 @@ import { useTheme } from '@/hooks/use-theme';
 export function ListSpace() {
   const router = useRouter();
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
-
-  function handleGetStarted() {
-    router.push('/list-spot/location');
-  }
 
   return (
     <ThemedView style={styles.screen}>
-      <View
-        style={[
-          styles.header,
-          { paddingTop: Platform.OS === 'android' ? insets.top + Spacing.three : Spacing.three },
-        ]}>
-        <BrandMark />
-        <Avatar />
-      </View>
+      <TabHeader />
 
-      <View style={styles.body}>
-        <View style={[styles.iconCircle, { backgroundColor: theme.accentMuted }]}>
-          <Icon name={{ sf: 'plus.circle.fill', md: 'add-circle' }} size={32} color={theme.accent} />
+      <ScrollView
+        style={styles.screen}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.body}>
+        <View style={[styles.iconCircle, { backgroundColor: theme.backgroundElement }]}>
+          <Icon name={{ sf: 'parkingsign', md: 'local-parking' }} size={28} color={theme.text} />
         </View>
-        <ThemedText type="headline" style={styles.title}>
+        <ThemedText type="headline" style={styles.center}>
           List your parking space
         </ThemedText>
-        <ThemedText type="default" themeColor="textSecondary" style={styles.message}>
-          Turn an empty spot into income — pin its location, add a few photos, and set your
-          price.
+        <ThemedText type="default" themeColor="textSecondary" style={styles.center}>
+          Pin your spot, add photos, set your price.
         </ThemedText>
 
-        <Button title="Get started →" onPress={handleGetStarted} style={styles.cta} />
-      </View>
+        <Button
+          title="Get started"
+          onPress={() => router.push('/list-spot/location')}
+          style={styles.cta}
+        />
+
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => router.push('/host/dashboard')}
+          hitSlop={Spacing.two}
+          style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
+          <ThemedText type="smallBold" themeColor="textSecondary" style={styles.link}>
+            Already hosting? Open Host Dashboard
+          </ThemedText>
+        </Pressable>
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -53,17 +55,14 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.three,
-  },
   body: {
-    flex: 1,
+    flexGrow: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.four,
+    padding: Spacing.four,
     gap: Spacing.two,
   },
   iconCircle: {
@@ -74,14 +73,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: Spacing.two,
   },
-  title: {
+  center: {
     textAlign: 'center',
-  },
-  message: {
-    textAlign: 'center',
-    marginBottom: Spacing.two,
   },
   cta: {
-    width: '100%',
+    alignSelf: 'stretch',
+    marginTop: Spacing.three,
+  },
+  link: {
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+    marginTop: Spacing.two,
   },
 });

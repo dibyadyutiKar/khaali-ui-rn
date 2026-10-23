@@ -26,9 +26,7 @@ function RouteOption({
         { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
       ]}>
       <Icon name={icon} size={16} color={theme.text} />
-      <ThemedText type="small" style={styles.optionLabel}>
-        {label}
-      </ThemedText>
+      <ThemedText type="smallBold">{label}</ThemedText>
     </Pressable>
   );
 }
@@ -67,11 +65,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.one,
-    paddingVertical: Spacing.two,
+    paddingVertical: Spacing.three,
     borderRadius: Radius.md,
     borderCurve: 'continuous',
-  },
-  optionLabel: {
-    fontWeight: 600,
   },
 });

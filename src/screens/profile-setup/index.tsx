@@ -1,13 +1,12 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Platform, ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { FormScreen } from '@/components/form-screen';
 import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 
 import { Role, RoleCard } from './components/role-card';
 import { StepProgress } from './components/step-progress';
@@ -17,94 +16,64 @@ const ROLES: Role[] = [
     id: 'find-parking',
     icon: { sf: 'parkingsign', md: 'local-parking' },
     title: 'Find parking',
-    subtitle: 'Book a spot near your destination',
-    tag: 'Hourly • Daily • Monthly',
-    highlight: { icon: { sf: 'bolt.fill', md: 'bolt' }, label: 'Instant booking' },
+    subtitle: 'Book a spot near where you’re going',
   },
   {
     id: 'find-storage',
     icon: { sf: 'shippingbox.fill', md: 'inventory-2' },
-    title: 'Find storage & warehouse',
-    subtitle: 'Reserve secure space for goods or boxes',
-    tag: 'Flexible tenure',
-    highlight: { icon: { sf: 'checkmark.shield.fill', md: 'verified' }, label: 'Gated & Verified' },
+    title: 'Find storage',
+    subtitle: 'Reserve secure space for goods',
   },
   {
     id: 'rent-out',
     icon: { sf: 'house.fill', md: 'home' },
     title: 'Rent out my parking',
-    subtitle: 'Earn ₹2,000–5,000/mo from an empty spot',
-    tag: 'Zero listing fees',
-    highlight: { icon: { sf: 'calendar', md: 'event' }, label: 'Payouts every Monday' },
+    subtitle: 'List an empty spot and earn from it',
   },
 ];
 
 export function ProfileSetup() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
   function handleContinue() {
     if (!selectedRole) return;
-    // TODO: persist the chosen role once the backend exists — navigating onward already
-    // works for real below.
+    // TODO: persist the chosen role once the backend exists.
     router.push('/find');
   }
 
   return (
-    <ThemedView style={styles.screen}>
-      <ScrollView
-        style={styles.scroll}
-        contentInsetAdjustmentBehavior="automatic"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: Platform.OS === 'android' ? insets.top + Spacing.three : Spacing.three,
-            paddingBottom: Platform.OS === 'ios' ? Spacing.four : insets.bottom + Spacing.four,
-          },
-        ]}>
-        <Header onBack={() => router.back()} />
+    <FormScreen footer={<Button title="Continue" disabled={!selectedRole} onPress={handleContinue} />}>
+      <Header onBack={() => router.back()} />
 
-        <StepProgress current={2} total={2} />
+      <StepProgress current={2} total={2} />
 
+      <View style={styles.intro}>
         <ThemedText type="headline">What brings you here?</ThemedText>
         <ThemedText type="default" themeColor="textSecondary">
-          Select how you want to use Khaali. You can switch roles at any time.
+          You can switch anytime.
         </ThemedText>
+      </View>
 
-        <View style={styles.cards}>
-          {ROLES.map((role) => (
-            <RoleCard
-              key={role.id}
-              role={role}
-              selected={selectedRole === role.id}
-              onPress={() => setSelectedRole(role.id)}
-            />
-          ))}
-        </View>
-
-        <Button title="Continue →" disabled={!selectedRole} onPress={handleContinue} />
-      </ScrollView>
-    </ThemedView>
+      <View style={styles.cards} accessibilityRole="radiogroup">
+        {ROLES.map((role) => (
+          <RoleCard
+            key={role.id}
+            role={role}
+            selected={selectedRole === role.id}
+            onPress={() => setSelectedRole(role.id)}
+          />
+        ))}
+      </View>
+    </FormScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  scroll: {
-    flex: 1,
-  },
-  content: {
-    width: '100%',
-    maxWidth: MaxContentWidth,
-    alignSelf: 'center',
-    paddingHorizontal: Spacing.three,
-    gap: Spacing.three,
+  intro: {
+    gap: Spacing.one,
   },
   cards: {
-    gap: Spacing.three,
+    gap: Spacing.two,
   },
 });

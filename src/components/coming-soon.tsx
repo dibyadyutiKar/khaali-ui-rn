@@ -1,12 +1,10 @@
-import { Platform, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { Avatar } from '@/components/avatar';
-import { BrandMark } from '@/components/brand-mark';
 import { Icon, IconName } from '@/components/icon';
+import { TabHeader } from '@/components/tab-header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Radius, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /** Honest placeholder for a tab whose screen hasn't been built yet — not a fake feature. */
@@ -20,30 +18,25 @@ export function ComingSoon({
   message: string;
 }) {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
 
   return (
     <ThemedView style={styles.screen}>
-      <View
-        style={[
-          styles.header,
-          { paddingTop: Platform.OS === 'android' ? insets.top + Spacing.three : Spacing.three },
-        ]}>
-        <BrandMark />
-        <Avatar />
-      </View>
+      <TabHeader />
 
-      <View style={styles.body}>
+      <ScrollView
+        style={styles.screen}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.body}>
         <View style={[styles.iconCircle, { backgroundColor: theme.backgroundElement }]}>
           <Icon name={icon} size={28} color={theme.textSecondary} />
         </View>
-        <ThemedText type="headline" style={styles.title}>
+        <ThemedText type="headline" style={styles.center}>
           {title}
         </ThemedText>
-        <ThemedText type="default" themeColor="textSecondary" style={styles.message}>
+        <ThemedText type="default" themeColor="textSecondary" style={styles.center}>
           {message}
         </ThemedText>
-      </View>
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -52,17 +45,14 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.three,
-  },
   body: {
-    flex: 1,
+    flexGrow: 1,
+    width: '100%',
+    maxWidth: MaxContentWidth,
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.four,
+    padding: Spacing.four,
     gap: Spacing.two,
   },
   iconCircle: {
@@ -73,10 +63,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: Spacing.two,
   },
-  title: {
-    textAlign: 'center',
-  },
-  message: {
+  center: {
     textAlign: 'center',
   },
 });

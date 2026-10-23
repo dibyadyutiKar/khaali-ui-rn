@@ -1,24 +1,14 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
-import { EncryptedBadge } from '@/components/encrypted-badge';
+import { FormScreen } from '@/components/form-screen';
 import { Header } from '@/components/header';
-import { Icon } from '@/components/icon';
-import { Pill } from '@/components/pill';
 import { TextField } from '@/components/text-field';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { TrustFooter } from '@/components/trust-footer';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { Spacing } from '@/constants/theme';
 
 const PHONE_LENGTH = 10;
 
@@ -28,14 +18,15 @@ function formatPhone(digits: string) {
 
 export function PhoneEntry() {
   const router = useRouter();
-  const theme = useTheme();
-  const insets = useSafeAreaInsets();
   const [digits, setDigits] = useState('');
 
   const isValid = digits.length === PHONE_LENGTH;
 
   function handleChange(text: string) {
-    setDigits(text.replace(/\D/g, '').slice(0, PHONE_LENGTH));
+    const all = text.replace(/\D/g, '');
+    // Autofill supplies the number with its country code ("+91 98765 43210"); strip it.
+    const local = all.length > PHONE_LENGTH && all.startsWith('91') ? all.slice(2) : all;
+    setDigits(local.slice(0, PHONE_LENGTH));
   }
 
   function handleContinue() {
@@ -48,79 +39,41 @@ export function PhoneEntry() {
   }
 
   return (
-    <ThemedView style={styles.screen}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={insets.top}>
-        <ScrollView
-          style={styles.flex}
-          contentInsetAdjustmentBehavior="automatic"
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[
-            styles.content,
-            {
-              paddingTop: Platform.OS === 'android' ? insets.top + Spacing.three : Spacing.three,
-              paddingBottom: Platform.OS === 'ios' ? Spacing.four : insets.bottom + Spacing.four,
-            },
-          ]}>
-          <Header onBack={() => router.back()} badge={<EncryptedBadge />} />
+    <FormScreen>
+      <Header onBack={() => router.back()} />
 
-          <Pill tone="accentMuted" style={styles.sectionBadge}>
-            <Icon name={{ sf: 'phone.fill', md: 'call' }} size={12} color={theme.accent} />
-            <ThemedText type="label" themeColor="accent">
-              Account setup
-            </ThemedText>
-          </Pill>
+      <View style={styles.intro}>
+        <ThemedText type="headline">What&apos;s your phone number?</ThemedText>
+        <ThemedText type="default" themeColor="textSecondary">
+          We&apos;ll text you a 6-digit code.
+        </ThemedText>
+      </View>
 
-          <ThemedText type="headline">What&apos;s your phone number?</ThemedText>
-          <ThemedText type="default" themeColor="textSecondary">
-            We&apos;ll text a 6-digit code to confirm it&apos;s really you.
-          </ThemedText>
+      <TextField
+        label="Phone number"
+        prefix="+91"
+        value={formatPhone(digits)}
+        onChangeText={handleChange}
+        onSubmitEditing={handleContinue}
+        keyboardType="phone-pad"
+        autoComplete="tel"
+        textContentType="telephoneNumber"
+        placeholder="98765 43210"
+        autoFocus
+      />
 
-          <TextField
-            label="Phone number"
-            prefix="+91"
-            value={formatPhone(digits)}
-            onChangeText={handleChange}
-            keyboardType="phone-pad"
-            placeholder="98765 43210"
-            autoFocus
-            maxLength={11}
-            style={styles.fieldInput}
-          />
+      <Button title="Continue" disabled={!isValid} onPress={handleContinue} />
 
-          <Button title="Continue →" disabled={!isValid} onPress={handleContinue} />
-
-          <TrustFooter
-            message="Your number is used only to verify your identity and secure your bookings."
-            onContactSupport={handleContactSupport}
-          />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </ThemedView>
+      <TrustFooter
+        message="Used only to verify you and secure your bookings."
+        onContactSupport={handleContactSupport}
+      />
+    </FormScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  flex: {
-    flex: 1,
-  },
-  content: {
-    width: '100%',
-    maxWidth: MaxContentWidth,
-    alignSelf: 'center',
-    paddingHorizontal: Spacing.three,
-    gap: Spacing.three,
-  },
-  sectionBadge: {
-    marginTop: Spacing.one,
-  },
-  fieldInput: {
-    letterSpacing: 1,
+  intro: {
+    gap: Spacing.one,
   },
 });

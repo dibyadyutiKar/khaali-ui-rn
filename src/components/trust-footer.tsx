@@ -16,20 +16,20 @@ export function TrustFooter({
 
   return (
     <View style={styles.container}>
-      <View style={styles.titleRow}>
-        <Icon name={{ sf: 'lock.fill', md: 'lock' }} size={14} color={theme.accent} />
-        <ThemedText type="label" themeColor="accent">
-          256-bit encrypted authentication
+      <View style={styles.messageRow}>
+        <Icon name={{ sf: 'lock.fill', md: 'lock' }} size={12} color={theme.textSecondary} />
+        <ThemedText type="small" themeColor="textSecondary" style={styles.message}>
+          {message}
         </ThemedText>
       </View>
 
-      <ThemedText type="small" themeColor="textSecondary" style={styles.body}>
-        {message}
-      </ThemedText>
-
-      <Pressable accessibilityRole="link" onPress={onContactSupport} hitSlop={Spacing.one}>
-        <ThemedText type="small" themeColor="accent" style={styles.link}>
-          Need help? Contact Khaali Support ↗
+      <Pressable
+        accessibilityRole="link"
+        onPress={onContactSupport}
+        hitSlop={Spacing.two}
+        style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
+        <ThemedText type="smallBold" style={styles.link}>
+          Contact support
         </ThemedText>
       </Pressable>
     </View>
@@ -38,18 +38,17 @@ export function TrustFooter({
 
 const styles = StyleSheet.create({
   container: {
-    gap: Spacing.one,
+    gap: Spacing.two,
   },
-  titleRow: {
+  messageRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: Spacing.one,
   },
-  body: {
-    lineHeight: 18,
+  message: {
+    flex: 1,
   },
   link: {
-    fontWeight: 600,
     textDecorationLine: 'underline',
   },
 });

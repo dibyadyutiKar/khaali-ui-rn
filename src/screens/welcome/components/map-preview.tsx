@@ -1,8 +1,6 @@
 import { ReactNode } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
-import { Dot } from '@/components/dot';
-import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -12,27 +10,24 @@ const ROAD_GAP = Spacing.two;
 
 /**
  * Stylized map illustration: city "blocks" laid out with flexbox, with the gaps between them
- * doubling as dashed roads (border-on-the-gap, not absolute-positioned lines) so the whole
- * thing reflows cleanly at any width instead of relying on fixed coordinates.
+ * doubling as roads, so it reflows at any width instead of relying on fixed coordinates.
  */
 export function MapPreview({ style }: { style?: StyleProp<ViewStyle> }) {
   const theme = useTheme();
   const roadColor = theme.backgroundSelected;
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.backgroundElement }, style]}>
+    <View
+      style={[styles.card, { backgroundColor: theme.backgroundElement }, style]}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants">
       <View style={styles.grid}>
         <View style={[styles.column, styles.leftColumn, { borderRightColor: roadColor }]}>
           <Block flex={0.3} end alignStart>
             <PricePin price="₹40" period="/hr" />
           </Block>
           <Block flex={0.42} />
-          <Block flex={0.28} center>
-            <Dot color={theme.accent} size={10} />
-            <ThemedText type="small" themeColor="textSecondary" style={styles.markerLabel}>
-              SONY WORLD JCT
-            </ThemedText>
-          </Block>
+          <Block flex={0.28} />
         </View>
 
         <View style={[styles.column, styles.rightColumn]}>
@@ -51,13 +46,6 @@ export function MapPreview({ style }: { style?: StyleProp<ViewStyle> }) {
           </View>
         </View>
       </View>
-
-      <ThemedText type="small" themeColor="textSecondary" style={styles.horizontalRoadLabel}>
-        100 FT ROAD
-      </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary" style={styles.verticalRoadLabel}>
-        80 FT INTERMEDIATE
-      </ThemedText>
     </View>
   );
 }
@@ -101,8 +89,6 @@ function Block({
 
 const styles = StyleSheet.create({
   card: {
-    position: 'relative',
-    aspectRatio: 1.3,
     padding: Spacing.two,
     borderRadius: Radius.xl,
     borderCurve: 'continuous',
@@ -147,32 +133,5 @@ const styles = StyleSheet.create({
   },
   blockAlignEnd: {
     alignItems: 'flex-end',
-  },
-  // Map-annotation text sits intentionally below the smallest ThemedText scale step (10px vs.
-  // the 14px "small" type) — these are decorative cartography labels, not a reusable text role.
-  markerLabel: {
-    textAlign: 'center',
-    fontSize: 10,
-    lineHeight: 13,
-    letterSpacing: 0.3,
-  },
-  horizontalRoadLabel: {
-    position: 'absolute',
-    top: '24%',
-    left: '46%',
-    fontSize: 9,
-    lineHeight: 11,
-    letterSpacing: 0.3,
-  },
-  verticalRoadLabel: {
-    position: 'absolute',
-    top: '38%',
-    left: '24%',
-    width: 110,
-    textAlign: 'center',
-    fontSize: 9,
-    lineHeight: 11,
-    letterSpacing: 0.3,
-    transform: [{ rotate: '-90deg' }],
   },
 });

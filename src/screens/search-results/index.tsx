@@ -1,28 +1,30 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Dot } from '@/components/dot';
+import { Button } from '@/components/button';
 import { Header } from '@/components/header';
-import { Icon } from '@/components/icon';
-import { Pill } from '@/components/pill';
 import { ChipOption, SelectChips } from '@/components/select-chips';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { MaxContentWidth, Spacing } from '@/constants/theme';
 
 import { ResultCard, SearchResult } from './components/result-card';
 
-type SortOption = 'nearest' | 'cheapest' | 'top-rated' | 'ev-charging';
+type SortOption = 'nearest' | 'cheapest' | 'top-rated';
 
 const SORT_OPTIONS: ChipOption<SortOption>[] = [
-  { id: 'nearest', label: 'Nearest', icon: { sf: 'checkmark', md: 'check' } },
+  { id: 'nearest', label: 'Nearest' },
   { id: 'cheapest', label: 'Cheapest' },
-  { id: 'top-rated', label: 'Top rated', icon: { sf: 'star.fill', md: 'star' } },
-  { id: 'ev-charging', label: 'EV Charging', icon: { sf: 'bolt.fill', md: 'bolt' } },
+  { id: 'top-rated', label: 'Top rated' },
 ];
+
+const COMPARE: Record<SortOption, (a: SearchResult, b: SearchResult) => number> = {
+  nearest: (a, b) => a.distanceMeters - b.distanceMeters,
+  cheapest: (a, b) => a.pricePerHour - b.pricePerHour,
+  'top-rated': (a, b) => b.rating - a.rating,
+};
 
 const RESULTS: SearchResult[] = [
   {
@@ -32,10 +34,9 @@ const RESULTS: SearchResult[] = [
     reviewCount: 62,
     distanceMeters: 180,
     walkMinutes: 2,
-    tags: ['Covered', '24/7 CCTV', 'Guard On-Site', 'Fits SUV'],
-    pricePerHour: '₹40',
-    pricePerDay: '₹150',
-    banner: { icon: { sf: 'bolt.fill', md: 'bolt' }, label: 'Instant Entry via OTP' },
+    tags: ['Covered', '24/7 CCTV', 'Fits SUV'],
+    pricePerHour: 40,
+    pricePerDay: 150,
   },
   {
     id: '2',
@@ -44,11 +45,9 @@ const RESULTS: SearchResult[] = [
     reviewCount: 45,
     distanceMeters: 250,
     walkMinutes: 3,
-    tags: ['Covered Stilt', 'Boom Barrier'],
-    highlightedTag: 'EV Charging',
-    pricePerHour: '₹35',
-    pricePerDay: '₹140',
-    banner: { icon: { sf: 'bolt.fill', md: 'bolt' }, label: 'EV Ready' },
+    tags: ['Covered stilt', 'EV charging', 'Boom barrier'],
+    pricePerHour: 35,
+    pricePerDay: 140,
   },
   {
     id: '3',
@@ -57,26 +56,21 @@ const RESULTS: SearchResult[] = [
     reviewCount: 38,
     distanceMeters: 380,
     walkMinutes: 5,
-    tags: ['Gated', 'CCTV', 'Instant Book'],
-    pricePerHour: '₹30',
-    pricePerDay: '₹120',
-    banner: { icon: { sf: 'arrow.triangle.2.circlepath', md: 'autorenew' }, label: 'Easy Turnaround' },
+    tags: ['Gated', 'CCTV', 'Instant book'],
+    pricePerHour: 30,
+    pricePerDay: 120,
   },
 ];
 
 export function SearchResults() {
   const router = useRouter();
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { location } = useLocalSearchParams<{ location?: string }>();
   const locationName = location || 'Koramangala';
 
   const [sort, setSort] = useState<SortOption>('nearest');
   const [savedIds, setSavedIds] = useState<string[]>([]);
-
-  function handleEditLocation() {
-    router.back();
-  }
+  const sorted = [...RESULTS].sort(COMPARE[sort]);
 
   function toggleSave(id: string) {
     setSavedIds((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
@@ -85,57 +79,38 @@ export function SearchResults() {
   function handleBookPress(result: SearchResult) {
     router.push({
       pathname: '/checkout',
-      params: { spotTitle: result.title, pricePerHour: result.pricePerHour.replace('₹', '') },
+      params: { spotTitle: result.title, pricePerHour: String(result.pricePerHour) },
     });
-  }
-
-  function handleShowMap() {
-    router.push('/find');
   }
 
   return (
     <ThemedView style={styles.screen}>
       <ScrollView
-        style={styles.scroll}
+        style={styles.screen}
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.content,
           {
             paddingTop: Platform.OS === 'android' ? insets.top + Spacing.three : Spacing.three,
-            paddingBottom: insets.bottom + Spacing.six,
+            paddingBottom: insets.bottom + Spacing.six + Spacing.four,
           },
         ]}>
         <Header onBack={() => router.back()} />
 
-        <View style={styles.titleRow}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Edit location, currently ${locationName}`}
-            onPress={handleEditLocation}
-            style={styles.titleButton}>
-            <ThemedText type="headline" numberOfLines={1} style={styles.title}>
-              {locationName}
-            </ThemedText>
-            <Icon name={{ sf: 'pencil', md: 'edit' }} size={16} color={theme.textSecondary} />
-          </Pressable>
-
-          <Pill tone="accentMuted">
-            <Dot color={theme.accent} size={6} />
-            <ThemedText type="label" themeColor="accent">
-              Live
-            </ThemedText>
-          </Pill>
+        <View style={styles.intro}>
+          <ThemedText type="headline" numberOfLines={2}>
+            {locationName}
+          </ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            {RESULTS.length} spots nearby
+          </ThemedText>
         </View>
-
-        <ThemedText type="small" themeColor="textSecondary">
-          {RESULTS.length} verified spots nearby • Updated just now
-        </ThemedText>
 
         <SelectChips options={SORT_OPTIONS} selected={sort} onSelect={setSort} />
 
         <View style={styles.list}>
-          {RESULTS.map((result) => (
+          {sorted.map((result) => (
             <ResultCard
               key={result.id}
               result={result}
@@ -147,16 +122,13 @@ export function SearchResults() {
         </View>
       </ScrollView>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Show results on map"
-        onPress={handleShowMap}
-        style={[styles.mapButton, { backgroundColor: theme.text, bottom: insets.bottom + Spacing.three }]}>
-        <Icon name={{ sf: 'map.fill', md: 'map' }} size={16} color={theme.background as string} />
-        <ThemedText type="default" style={{ color: theme.background, fontWeight: 600 }}>
-          Map
-        </ThemedText>
-      </Pressable>
+      <Button
+        title="Map"
+        size="sm"
+        icon={{ sf: 'map.fill', md: 'map' }}
+        onPress={() => router.dismissTo('/find')}
+        style={[styles.mapButton, { bottom: insets.bottom + Spacing.three }]}
+      />
     </ThemedView>
   );
 }
@@ -165,45 +137,23 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
-  scroll: {
-    flex: 1,
-  },
   content: {
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
     paddingHorizontal: Spacing.three,
-    gap: Spacing.two,
+    gap: Spacing.three,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.two,
-    marginTop: Spacing.two,
-  },
-  titleButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one,
-  },
-  title: {
-    flexShrink: 1,
+  intro: {
+    gap: Spacing.half,
+    marginTop: Spacing.one,
   },
   list: {
     gap: Spacing.three,
-    marginTop: Spacing.one,
   },
   mapButton: {
     position: 'absolute',
     alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Radius.full,
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
   },
 });

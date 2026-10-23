@@ -1,157 +1,111 @@
 import { Host, Switch } from '@expo/ui';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Icon } from '@/components/icon';
+import { Icon, IconName } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-export function ScheduleSection({
-  dateLabel,
-  entryLabel,
-  durationHours,
-  exitLabel,
-  onExtend,
-  onReset,
-  canReset,
-  vehiclePlate,
-  vehicleType,
-  vehicleModel,
-  onChangeVehicle,
-  evCharging,
-  onToggleEvCharging,
+function StepButton({
+  icon,
+  label,
+  disabled,
+  onPress,
 }: {
-  dateLabel: string;
-  entryLabel: string;
-  durationHours: number;
-  exitLabel: string;
-  onExtend: (hours: number) => void;
-  onReset: () => void;
-  canReset: boolean;
-  vehiclePlate: string;
-  vehicleType: string;
-  vehicleModel: string;
-  onChangeVehicle: () => void;
-  evCharging: boolean;
-  onToggleEvCharging: (value: boolean) => void;
+  icon: IconName;
+  label: string;
+  disabled: boolean;
+  onPress: () => void;
 }) {
   const theme = useTheme();
 
   return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <ThemedText type="default" style={styles.sectionTitle}>
-          1. Schedule &amp; vehicle
-        </ThemedText>
-        <View style={styles.liveBadge}>
-          <Icon name={{ sf: 'bolt.fill', md: 'bolt' }} size={11} color={theme.accent} />
-          <ThemedText type="small" themeColor="accent" style={styles.liveLabel}>
-            Live slot active
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      hitSlop={Spacing.one}
+      style={({ pressed }) => [
+        styles.stepButton,
+        { backgroundColor: theme.backgroundSelected, opacity: disabled ? 0.4 : pressed ? 0.7 : 1 },
+      ]}>
+      <Icon name={icon} size={16} color={theme.text} />
+    </Pressable>
+  );
+}
+
+export function ScheduleSection({
+  dateLabel,
+  timeRangeLabel,
+  durationHours,
+  minHours,
+  maxHours,
+  onChangeDuration,
+  vehicleLabel,
+  evCharging,
+  evFee,
+  onToggleEvCharging,
+}: {
+  dateLabel: string;
+  timeRangeLabel: string;
+  durationHours: number;
+  minHours: number;
+  maxHours: number;
+  onChangeDuration: (hours: number) => void;
+  vehicleLabel: string;
+  evCharging: boolean;
+  evFee: number;
+  onToggleEvCharging: (value: boolean) => void;
+}) {
+  const theme = useTheme();
+  const divider = <View style={[styles.divider, { backgroundColor: theme.backgroundSelected }]} />;
+
+  return (
+    <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
+      <View style={styles.row}>
+        <View style={styles.rowText}>
+          <ThemedText type="defaultBold">{dateLabel}</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            {timeRangeLabel}
           </ThemedText>
+        </View>
+        <View style={styles.stepper}>
+          <StepButton
+            icon={{ sf: 'minus', md: 'remove' }}
+            label="Shorten by one hour"
+            disabled={durationHours <= minHours}
+            onPress={() => onChangeDuration(durationHours - 1)}
+          />
+          <ThemedText type="smallBold" style={styles.hours} accessibilityLiveRegion="polite">
+            {durationHours} hrs
+          </ThemedText>
+          <StepButton
+            icon={{ sf: 'plus', md: 'add' }}
+            label="Extend by one hour"
+            disabled={durationHours >= maxHours}
+            onPress={() => onChangeDuration(durationHours + 1)}
+          />
         </View>
       </View>
 
-      <View style={styles.cardRow}>
-        <View style={[styles.infoCard, { backgroundColor: theme.infoMuted }]}>
-          <ThemedText type="small" themeColor="textSecondary" style={styles.infoLabel}>
-            Date
-          </ThemedText>
-          <ThemedText type="default" style={styles.infoValue}>
-            {dateLabel}
-          </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            Entry: {entryLabel}
-          </ThemedText>
-        </View>
+      {divider}
 
-        <View style={[styles.infoCard, { backgroundColor: theme.infoMuted }]}>
-          <ThemedText type="small" themeColor="textSecondary" style={styles.infoLabel}>
-            Duration
-          </ThemedText>
-          <ThemedText type="default" style={styles.infoValue}>
-            {durationHours} Hour{durationHours === 1 ? '' : 's'}
-          </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            Exit: {exitLabel}
-          </ThemedText>
-        </View>
+      <View style={styles.row}>
+        <Icon name={{ sf: 'car.fill', md: 'directions-car' }} size={18} color={theme.textSecondary} />
+        <ThemedText type="default" numberOfLines={1} style={styles.rowText}>
+          {vehicleLabel}
+        </ThemedText>
       </View>
 
-      <View style={styles.extendRow}>
-        <ThemedText type="small" themeColor="textSecondary">
-          Extend duration:
-        </ThemedText>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Extend by 1 hour"
-          onPress={() => onExtend(1)}
-          style={[styles.extendChip, { backgroundColor: theme.backgroundElement }]}>
-          <ThemedText type="small" style={styles.extendLabel}>
-            +1 hr
-          </ThemedText>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Extend by 2 hours"
-          onPress={() => onExtend(2)}
-          style={[styles.extendChip, { backgroundColor: theme.backgroundElement }]}>
-          <ThemedText type="small" style={styles.extendLabel}>
-            +2 hrs
-          </ThemedText>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Reset duration"
-          disabled={!canReset}
-          onPress={onReset}
-          hitSlop={Spacing.one}>
-          <ThemedText
-            type="small"
-            themeColor="textSecondary"
-            style={[styles.resetLabel, { opacity: canReset ? 1 : 0.4 }]}>
-            Reset
-          </ThemedText>
-        </Pressable>
-      </View>
+      {divider}
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Change vehicle"
-        onPress={onChangeVehicle}
-        style={[styles.vehicleCard, { backgroundColor: theme.backgroundElement }]}>
-        <View style={[styles.vehicleIcon, { backgroundColor: theme.text }]}>
-          <Icon name={{ sf: 'car.fill', md: 'directions-car' }} size={16} color={theme.background as string} />
-        </View>
-        <View style={styles.vehicleText}>
-          <View style={styles.vehiclePlateRow}>
-            <ThemedText type="default" style={styles.vehiclePlate}>
-              {vehiclePlate}
-            </ThemedText>
-            <View style={[styles.vehicleTypeBadge, { backgroundColor: theme.backgroundSelected }]}>
-              <ThemedText type="small" style={styles.vehicleTypeLabel}>
-                {vehicleType}
-              </ThemedText>
-            </View>
-          </View>
+      <View style={styles.row}>
+        <View style={styles.rowText}>
+          <ThemedText type="default">EV charging</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            {vehicleModel}
-          </ThemedText>
-        </View>
-        <ThemedText type="small" themeColor="accent" style={styles.changeLabel}>
-          Change
-        </ThemedText>
-      </Pressable>
-
-      <View style={[styles.evCard, { backgroundColor: theme.accentMuted }]}>
-        <View style={[styles.evIcon, { backgroundColor: theme.background }]}>
-          <Icon name={{ sf: 'bolt.car.fill', md: 'ev-station' }} size={16} color={theme.accent} />
-        </View>
-        <View style={styles.evText}>
-          <ThemedText type="default" style={styles.evTitle}>
-            7.4 kW AC Wallbox Charging
-          </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            Host plug unlocked upon parking (+₹45)
+            +₹{evFee}
           </ThemedText>
         </View>
         <Host matchContents>
@@ -163,116 +117,39 @@ export function ScheduleSection({
 }
 
 const styles = StyleSheet.create({
-  section: {
-    gap: Spacing.two,
+  card: {
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    borderRadius: Radius.lg,
+    borderCurve: 'continuous',
   },
-  sectionHeader: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: Spacing.three,
+    paddingVertical: Spacing.two,
   },
-  sectionTitle: {
-    fontWeight: 700,
-  },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  rowText: {
+    flex: 1,
     gap: Spacing.half,
   },
-  liveLabel: {
-    fontWeight: 700,
+  divider: {
+    height: StyleSheet.hairlineWidth,
   },
-  cardRow: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-  },
-  infoCard: {
-    flex: 1,
-    padding: Spacing.two,
-    borderRadius: Radius.lg,
-    borderCurve: 'continuous',
-    gap: 2,
-  },
-  infoLabel: {
-    fontWeight: 600,
-  },
-  infoValue: {
-    fontWeight: 700,
-  },
-  extendRow: {
+  stepper: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
   },
-  extendChip: {
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.one,
-    borderRadius: Radius.full,
-  },
-  extendLabel: {
-    fontWeight: 700,
-  },
-  resetLabel: {
-    fontWeight: 600,
-    marginLeft: 'auto',
-  },
-  vehicleCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-    padding: Spacing.two,
-    borderRadius: Radius.lg,
-    borderCurve: 'continuous',
-  },
-  vehicleIcon: {
+  stepButton: {
     width: 36,
     height: 36,
     borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  vehicleText: {
-    flex: 1,
-    gap: 2,
-  },
-  vehiclePlateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one,
-  },
-  vehiclePlate: {
-    fontWeight: 700,
-  },
-  vehicleTypeBadge: {
-    paddingHorizontal: Spacing.one,
-    borderRadius: Radius.sm,
-  },
-  vehicleTypeLabel: {
-    fontWeight: 700,
-  },
-  changeLabel: {
-    fontWeight: 600,
-  },
-  evCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-    padding: Spacing.two,
-    borderRadius: Radius.lg,
-    borderCurve: 'continuous',
-  },
-  evIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: Radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  evText: {
-    flex: 1,
-    gap: 2,
-  },
-  evTitle: {
-    fontWeight: 700,
+  hours: {
+    minWidth: 44,
+    textAlign: 'center',
   },
 });

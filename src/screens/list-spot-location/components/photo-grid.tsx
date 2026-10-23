@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Icon, IconName } from '@/components/icon';
+import { Icon } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -9,8 +9,6 @@ import { useTheme } from '@/hooks/use-theme';
 export type PhotoSlot = {
   id: string;
   label: string;
-  icon: IconName;
-  recommended?: boolean;
   uri: string | null;
 };
 
@@ -27,11 +25,10 @@ export function PhotoGrid({
 
   return (
     <View style={styles.grid}>
-      <CoverSlot slot={cover} onAdd={() => onAddPhoto(cover.id)} onRemove={() => onRemovePhoto(cover.id)} />
-
+      <Slot slot={cover} large onAdd={() => onAddPhoto(cover.id)} onRemove={() => onRemovePhoto(cover.id)} />
       <View style={styles.restRow}>
         {rest.map((slot) => (
-          <SecondarySlot
+          <Slot
             key={slot.id}
             slot={slot}
             onAdd={() => onAddPhoto(slot.id)}
@@ -43,24 +40,33 @@ export function PhotoGrid({
   );
 }
 
-function CoverSlot({ slot, onAdd, onRemove }: { slot: PhotoSlot; onAdd: () => void; onRemove: () => void }) {
+function Slot({
+  slot,
+  large,
+  onAdd,
+  onRemove,
+}: {
+  slot: PhotoSlot;
+  large?: boolean;
+  onAdd: () => void;
+  onRemove: () => void;
+}) {
   const theme = useTheme();
+  const shape = large ? styles.large : styles.small;
 
   if (slot.uri) {
     return (
-      <View style={styles.coverFilled}>
+      <View style={[shape, styles.filled]}>
         <Image source={{ uri: slot.uri }} style={StyleSheet.absoluteFill} contentFit="cover" />
-        <View style={[styles.coverBadge, { backgroundColor: 'rgba(0, 0, 0, 0.6)' }]}>
-          <Icon name={{ sf: 'star.fill', md: 'star' }} size={11} color="#ffffff" />
-          <ThemedText type="small" style={styles.coverBadgeLabel}>
-            {slot.label}
-          </ThemedText>
-        </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Remove ${slot.label}`}
+          accessibilityLabel={`Remove ${slot.label} photo`}
           onPress={onRemove}
-          style={[styles.removeButton, { backgroundColor: theme.background }]}>
+          hitSlop={Spacing.two}
+          style={({ pressed }) => [
+            styles.removeButton,
+            { backgroundColor: theme.background, opacity: pressed ? 0.7 : 1 },
+          ]}>
           <Icon name={{ sf: 'xmark', md: 'close' }} size={12} color={theme.text} />
         </Pressable>
       </View>
@@ -70,54 +76,17 @@ function CoverSlot({ slot, onAdd, onRemove }: { slot: PhotoSlot; onAdd: () => vo
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Add ${slot.label}`}
+      accessibilityLabel={`Add ${slot.label} photo`}
       onPress={onAdd}
-      style={[styles.coverEmpty, { backgroundColor: theme.backgroundElement }]}>
-      <View style={[styles.addIcon, { backgroundColor: theme.background }]}>
-        <Icon name={{ sf: 'plus', md: 'add' }} size={18} color={theme.text} />
-      </View>
-      <ThemedText type="small" style={styles.slotLabel}>
+      style={({ pressed }) => [
+        shape,
+        styles.empty,
+        { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
+      ]}>
+      <Icon name={{ sf: 'plus', md: 'add' }} size={large ? 20 : 16} color={theme.textSecondary} />
+      <ThemedText type="small" themeColor="textSecondary" style={styles.label}>
         {slot.label}
       </ThemedText>
-    </Pressable>
-  );
-}
-
-function SecondarySlot({ slot, onAdd, onRemove }: { slot: PhotoSlot; onAdd: () => void; onRemove: () => void }) {
-  const theme = useTheme();
-
-  if (slot.uri) {
-    return (
-      <View style={[styles.secondary, styles.secondaryFilled]}>
-        <Image source={{ uri: slot.uri }} style={StyleSheet.absoluteFill} contentFit="cover" />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Remove ${slot.label}`}
-          onPress={onRemove}
-          style={[styles.removeButton, { backgroundColor: theme.background }]}>
-          <Icon name={{ sf: 'xmark', md: 'close' }} size={12} color={theme.text} />
-        </Pressable>
-      </View>
-    );
-  }
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`Add ${slot.label}${slot.recommended ? ', recommended' : ''}`}
-      onPress={onAdd}
-      style={[styles.secondary, { backgroundColor: theme.backgroundElement }]}>
-      <View style={[styles.addIcon, { backgroundColor: theme.background }]}>
-        <Icon name={slot.icon} size={16} color={theme.text} />
-      </View>
-      <ThemedText type="small" style={styles.slotLabel} numberOfLines={1}>
-        {slot.label}
-      </ThemedText>
-      {slot.recommended && (
-        <ThemedText type="small" themeColor="textSecondary" style={styles.recommendedLabel}>
-          Recommended
-        </ThemedText>
-      )}
     </Pressable>
   );
 }
@@ -130,70 +99,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.two,
   },
-  coverFilled: {
-    position: 'relative',
+  large: {
     aspectRatio: 2,
     borderRadius: Radius.lg,
     borderCurve: 'continuous',
-    overflow: 'hidden',
   },
-  coverEmpty: {
-    aspectRatio: 2,
-    borderRadius: Radius.lg,
-    borderCurve: 'continuous',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.one,
-  },
-  coverBadge: {
-    position: 'absolute',
-    top: Spacing.two,
-    left: Spacing.two,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.half,
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.half,
-    borderRadius: Radius.full,
-  },
-  coverBadgeLabel: {
-    color: '#ffffff',
-    fontWeight: 700,
-  },
-  secondary: {
+  small: {
     flex: 1,
     aspectRatio: 1,
     borderRadius: Radius.md,
     borderCurve: 'continuous',
+  },
+  filled: {
+    overflow: 'hidden',
+  },
+  empty: {
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.half,
+    padding: Spacing.one,
   },
-  secondaryFilled: {
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  addIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: Radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  slotLabel: {
-    fontWeight: 600,
+  label: {
     textAlign: 'center',
-  },
-  recommendedLabel: {
-    fontSize: 10,
-    lineHeight: 12,
   },
   removeButton: {
     position: 'absolute',
     top: Spacing.one,
     right: Spacing.one,
-    width: 22,
-    height: 22,
+    width: 28,
+    height: 28,
     borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',

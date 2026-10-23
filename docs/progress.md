@@ -207,3 +207,74 @@ This Figma was already well-organized (unlike listing-flow step 2) — no layout
 2. **UPI verification** — the "Verify" button next to the UPI ID field is a TODO; no backend to check a UPI ID against.
 3. **Vehicle management** — "Change" next to the vehicle card is a TODO; there's no screen yet to pick a different saved vehicle or add one.
 4. **Everything else carried from the spot the user tapped "Book" on** — only title and hourly rate make the trip from Search Results today. Bay number, address, host-verification copy, and the vehicle itself are all still representative mock data, consistent with how earlier screens handle data not yet backed by a real source.
+
+---
+
+## Phase 5 — Host Dashboard
+
+**Status: started.** The host side of the app now has a home base, reached from the renter-facing List Space tab via a new "Already hosting? Go to your Host Dashboard →" link.
+
+### What's built
+
+**Host Dashboard** (`src/screens/host-dashboard/`, route `/host/dashboard`) — a second, host-specific `NativeTabs` group (`src/app/host/_layout.tsx`: Dashboard/Bookings/Earnings/Profile), separate from the renter tab group, since a host's bottom nav genuinely needs different destinations. Only the Dashboard tab is a real screen; Bookings/Earnings/Profile are `ComingSoon` placeholders — same pattern Phase 2 established for the renter tabs (build the one real screen asked for, placeholder the rest honestly rather than guessing at unspecified screens).
+
+The Dashboard itself is fully interactive, not a static mock:
+- **Earnings card** — dark/inverted card (`theme.text`/`theme.background`, same contrast-safe inversion idiom as Search Results' floating Map button) showing this month's total, a `+18%` delta pill, a small bar-sparkline (computed from a local mock array, not an image), and a "View payouts →" link (TODO — no payouts screen yet).
+- **Stat tiles** — Active listings / Bookings per week / Occupancy, three-up row.
+- **Booking requests** — real Accept/Decline actions that genuinely remove a request from the pending list and recompute the "(N)" count in the section header, down to a real empty state ("No pending requests right now") when both are resolved. Verified by compounding both actions in one pass, not just checking one in isolation.
+- **Your listings** — each listing has a real `@expo/ui` `Switch` (third real use, after listing-step-2 and Checkout) that toggles Live/Paused, backed by actual local state per listing, not shared/global.
+- **"+ Add space"** floating button genuinely navigates into the existing listing wizard (`/list-spot/location`) — reuses the flow already built in Phase 3 rather than inventing a second one.
+- **"Host Mode ⇄" toggle** navigates back to the renter-facing `/find` — real two-way navigation between renter and host views, not a decorative toggle. There's no persisted "mode" state (no auth/session backend to hang it on yet), so switching is a plain navigation action in both directions, not a global app-mode flag — see `docs/gaps.md`.
+
+### Design-system additions
+
+- **Colors:** `danger` / `dangerMuted` (red pair, light/dark) — first need for a destructive/negative action in the app. `Button` gained a third `danger` variant (muted-red fill, red text) for the Decline action, alongside its existing `primary`/`secondary` variants — extended the existing component rather than hand-rolling a one-off red button.
+
+### Reference-design judgment applied
+
+- The reference's "Hi Priya" greeting was dropped for a generic "Welcome back" — there's no auth/profile backend yet (Profile Setup's role selection still isn't persisted, see `gaps.md`), so showing a specific name would be fabricating the logged-in user's own identity, the same category of thing `Avatar`'s doc comment already rules out for photos. Mock *third-party* content (renter names on booking requests, listing addresses) stays, consistent with how Search Results/Checkout already use plausible sample data for things that aren't the viewer's own identity.
+- Kept the trust-ticker/stat-flourish content to exactly what the reference showed here (earnings, stat tiles, requests, listings) since each tile serves this screen's actual job (deciding what to accept, what to toggle) rather than being decoration.
+- Emoji-free throughout — every icon (star rating, pin, clock, trending-up, swap) is the shared `Icon` component (SF/Material pair), never copied from the source mock as emoji.
+
+### What's left in this phase
+
+1. **Host Bookings / Earnings / Profile tabs** — still `ComingSoon` placeholders; each is its own real screen to design.
+2. **Listing management screen** — "Manage all (N)" on the listings section is a TODO; no dedicated management screen exists yet.
+3. **Payouts screen** — "View payouts →" on the earnings card is a TODO.
+4. **Backend for Accept/Decline** — both genuinely update local UI state, but neither calls a real reservations/notification endpoint yet (no backend exists).
+5. **Host-mode as persisted state** — switching between renter/host views is plain navigation today; revisit once there's a real session/profile to carry a "current mode" flag on.
+
+---
+
+## Design review pass (2026-10-15)
+
+Every screen was reviewed in parallel by 12 reviewer agents (product + iOS/Android UI/UX), each screenshotting its screen at 360/390px in light and dark mode. Scores before the pass: 5–6.5/10. The user's brief: no overflow, native-feeling on iOS/Android, **no green text**, clean, only the content each screen needs.
+
+### App-wide changes
+- **Green is now the logo dot only.** `accentMuted`/`infoMuted`/`danger*` tokens were removed; no text, pill, icon, or card uses `accent` anymore. The UI is monochrome (text / textSecondary on background / backgroundElement / backgroundSelected); selection is shown by inversion, not color. `Pill` defaults to neutral.
+- **No typed arrows/glyphs in labels** (`→`, `↗`, `✓`) — they're read aloud by screen readers and aren't native button style.
+- **Decoration cut:** status pills, stats strips, marketing claims ("earn 3x more", "100% Gated & Safe", "₹3,200 est. earnings" before any price was set), duplicated "256-bit encrypted" badges, fake "Live"/"Updated just now" freshness, "Verified" badges on every card.
+- **Dead controls removed** rather than left as no-op TODOs — see `docs/gaps.md` → "Removed until they can work."
+- **`ThemedText`:** added `defaultBold` and `display`, removed the scaffold's unused `title`/`subtitle`/`link`/`linkPrimary` (hardcoded blue)/`code`. ~20 inline `fontWeight` overrides replaced by types.
+- **`Button`:** real disabled colors (was 40% opacity — muddy in dark mode), single-line label, optional `icon`, `tonal` variant for buttons on cards.
+- **`Header`** is back + brand only (no avatar before the user has an account); new **`TabHeader`** (brand + avatar) for tab roots applies the top safe-area inset on every platform — the old pattern only did so on Android.
+- **`SearchBar`** is visible in dark mode (was black-on-black), submits on the search key, no dead mic. **`SelectChips`** bleed to the screen edge instead of clipping at the gutter.
+
+### Per-screen highlights
+- **OTP (Phone/Email Verify):** custom on-screen keypad replaced with one invisible native `TextInput` (`textContentType="oneTimeCode"`, `autoComplete="one-time-code"`) under the six boxes — iOS "From Messages" autofill, Android SMS autofill, paste, and hardware keyboards now work; formatted pastes ("123-456") are normalized; the 6th digit auto-submits. New shared `OtpInput` and `SentToRow`.
+- **Phone/Email Entry:** autofill props (`tel`, `email`), Return key submits, phone autofill with `+91` is stripped.
+- **Welcome:** primary CTA back above the fold on small phones; "Earn from it" now opens the listing flow.
+- **Profile Setup:** compact role rows, Continue pinned to the bottom.
+- **Find:** duration chips actually switch the displayed prices (hourly/daily/monthly), on the list and map.
+- **Search Location:** typing filters saved/recent places; submit searches the typed text.
+- **Search Results:** sort chips actually sort.
+- **Checkout:** roughly half the scroll — duration stepper, Card/UPI up front with Cash/Net banking behind "More payment options", one-line cancellation note, footer button can't wrap. EV charging is now opt-in (defaulting a paid add-on to on was a dark pattern).
+- **Host Dashboard:** host tabs moved from the `(host)` group to a real `/host/*` segment — `(host)/bookings` and `(tabs)/bookings` both resolved to `/bookings`, so the renter Bookings tab was opening the host one. "Add space" moved from a floating button (which would collide with the native tab bar) into the listings header.
+
+### Verified
+`tsc` + `expo lint` clean. All 16 routes screenshotted at 360px in light and dark: zero horizontal overflow, zero console errors. 13 scripted interactions pass (OTP paste + auto-submit, phone autofill, Find price toggle, search filtering, real sort order, route collision fix, checkout math + UPI gating, host accept → empty state). Not verified: native iOS/Android devices (keyboard insets, Dynamic Type, SMS autofill).
+
+### Follow-up from on-device testing (iPhone 16)
+- **Onboarding screens scrolled even when their content fit, and the keyboard pushed the header off-screen.** Cause: `contentInsetAdjustmentBehavior="automatic"` adds the safe-area insets *on top of* a full-height (`flexGrow: 1`) content container, and `automaticallyAdjustKeyboardInsets` scrolls the whole page to reveal the focused field. Fix: new shared `FormScreen` (`src/components/form-screen.tsx`) used by Welcome, Phone/Email Entry, both Verify screens and Profile Setup. It applies insets by hand, doesn't bounce when content fits, and uses `KeyboardAvoidingView` so the keyboard shrinks the frame instead of scrolling the header away. It has an optional `footer` slot that stays pinned above the keyboard.
+- **Welcome's empty gap above the CTAs:** the map now flexes to fill the spare height (min 200pt) instead of a fixed aspect ratio.
+- Verified on web at 393×852 (iPhone 16) and 375×667 (SE): all six screens fit with no scroll. Keyboard behavior can only be confirmed on device.

@@ -1,19 +1,18 @@
 import { Host, Switch } from '@expo/ui';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
-import { Icon } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 const DAYS = [
-  { id: 'mon', label: 'M' },
-  { id: 'tue', label: 'T' },
-  { id: 'wed', label: 'W' },
-  { id: 'thu', label: 'T' },
-  { id: 'fri', label: 'F' },
-  { id: 'sat', label: 'S' },
-  { id: 'sun', label: 'S' },
+  { id: 'mon', label: 'M', name: 'Monday' },
+  { id: 'tue', label: 'T', name: 'Tuesday' },
+  { id: 'wed', label: 'W', name: 'Wednesday' },
+  { id: 'thu', label: 'T', name: 'Thursday' },
+  { id: 'fri', label: 'F', name: 'Friday' },
+  { id: 'sat', label: 'S', name: 'Saturday' },
+  { id: 'sun', label: 'S', name: 'Sunday' },
 ] as const;
 
 export function AvailabilityCard({
@@ -36,61 +35,57 @@ export function AvailabilityCard({
   onToggleAlwaysOpen: (value: boolean) => void;
 }) {
   const theme = useTheme();
-  const statusLabel = alwaysOpen ? 'Active 24×7' : 'Active regular';
 
   return (
     <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
-      <View style={styles.statusRow}>
-        <ThemedText type="label" themeColor="textSecondary">
-          Availability
-        </ThemedText>
-        <ThemedText type="label" themeColor="accent">
-          {statusLabel}
-        </ThemedText>
-      </View>
-
-      <View style={styles.dayRow}>
-        {DAYS.map((day) => {
-          const active = activeDays.includes(day.id);
-          return (
-            <Pressable
-              key={day.id}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: active }}
-              accessibilityLabel={day.id}
-              onPress={() => onToggleDay(day.id)}
-              style={[styles.dayCircle, { backgroundColor: active ? theme.text : theme.backgroundSelected }]}>
-              <ThemedText type="smallBold" style={{ color: active ? theme.background : theme.text }}>
-                {day.label}
-              </ThemedText>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <View style={styles.timeRow}>
-        <TimeField label="From" value={fromTime} onChangeText={onChangeFromTime} disabled={alwaysOpen} />
-        <TimeField label="To" value={toTime} onChangeText={onChangeToTime} disabled={alwaysOpen} />
-      </View>
-
-      <View style={[styles.divider, { backgroundColor: theme.backgroundSelected }]} />
-
-      <View style={styles.alwaysOpenRow}>
-        <View style={[styles.alwaysOpenIcon, { backgroundColor: theme.accentMuted }]}>
-          <Icon name={{ sf: 'infinity', md: 'all-inclusive' }} size={16} color={theme.accent} />
-        </View>
-        <View style={styles.alwaysOpenText}>
-          <ThemedText type="default" style={styles.alwaysOpenTitle}>
-            Available 24×7
-          </ThemedText>
+      <View style={styles.row}>
+        <View style={styles.rowText}>
+          <ThemedText type="defaultBold">Open 24×7</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Round-the-clock entry & exit
+            Entry and exit any time
           </ThemedText>
         </View>
         <Host matchContents>
           <Switch value={alwaysOpen} onValueChange={onToggleAlwaysOpen} />
         </Host>
       </View>
+
+      {!alwaysOpen && (
+        <>
+          <View style={[styles.divider, { backgroundColor: theme.backgroundSelected }]} />
+
+          <View style={styles.dayRow}>
+            {DAYS.map((day) => {
+              const active = activeDays.includes(day.id);
+              return (
+                <Pressable
+                  key={day.id}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: active }}
+                  accessibilityLabel={day.name}
+                  onPress={() => onToggleDay(day.id)}
+                  hitSlop={Spacing.one}
+                  style={({ pressed }) => [
+                    styles.dayCircle,
+                    {
+                      backgroundColor: active ? theme.text : theme.backgroundSelected,
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}>
+                  <ThemedText type="smallBold" style={{ color: active ? theme.background : theme.text }}>
+                    {day.label}
+                  </ThemedText>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <View style={styles.timeRow}>
+            <TimeField label="From" value={fromTime} onChangeText={onChangeFromTime} />
+            <TimeField label="To" value={toTime} onChangeText={onChangeToTime} />
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -99,31 +94,26 @@ function TimeField({
   label,
   value,
   onChangeText,
-  disabled,
 }: {
   label: string;
   value: string;
   onChangeText: (value: string) => void;
-  disabled?: boolean;
 }) {
   const theme = useTheme();
 
   return (
-    <View style={[styles.timeField, { backgroundColor: theme.background, opacity: disabled ? 0.4 : 1 }]}>
+    <View style={[styles.timeField, { backgroundColor: theme.background }]}>
       <ThemedText type="small" themeColor="textSecondary">
         {label}
       </ThemedText>
-      <View style={styles.timeInputRow}>
-        <Icon name={{ sf: 'clock', md: 'schedule' }} size={14} color={theme.textSecondary} />
-        <TextInput
-          value={value}
-          onChangeText={onChangeText}
-          editable={!disabled}
-          placeholder="9:00 AM"
-          placeholderTextColor={theme.textSecondary}
-          style={[styles.timeInput, { color: theme.text, outlineWidth: 0 }]}
-        />
-      </View>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        accessibilityLabel={`${label} time`}
+        placeholder="9:00 AM"
+        placeholderTextColor={theme.textSecondary}
+        style={[styles.timeInput, { color: theme.text }]}
+      />
     </View>
   );
 }
@@ -135,18 +125,26 @@ const styles = StyleSheet.create({
     borderCurve: 'continuous',
     gap: Spacing.three,
   },
-  statusRow: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: Spacing.three,
+  },
+  rowText: {
+    flex: 1,
+    gap: Spacing.half,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
   },
   dayRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: Spacing.one,
   },
   dayCircle: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
     borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
@@ -157,42 +155,17 @@ const styles = StyleSheet.create({
   },
   timeField: {
     flex: 1,
-    padding: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
     borderRadius: Radius.md,
     borderCurve: 'continuous',
-    gap: 2,
-  },
-  timeInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one,
+    gap: Spacing.half,
   },
   timeInput: {
-    flex: 1,
-    fontSize: 14,
+    fontSize: 16,
+    lineHeight: 22,
     fontWeight: 700,
     padding: 0,
-  },
-  divider: {
-    height: 1,
-  },
-  alwaysOpenRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  alwaysOpenIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: Radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  alwaysOpenText: {
-    flex: 1,
-    gap: 2,
-  },
-  alwaysOpenTitle: {
-    fontWeight: 700,
+    outlineWidth: 0,
   },
 });

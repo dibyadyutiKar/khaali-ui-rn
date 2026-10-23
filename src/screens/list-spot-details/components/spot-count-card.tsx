@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Icon } from '@/components/icon';
+import { Icon, IconName } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -8,44 +8,64 @@ import { useTheme } from '@/hooks/use-theme';
 const MIN_SPOTS = 1;
 const MAX_SPOTS = 20;
 
-export function SpotCountCard({ count, onChange }: { count: number; onChange: (count: number) => void }) {
+function StepButton({
+  icon,
+  label,
+  disabled,
+  onPress,
+}: {
+  icon: IconName;
+  label: string;
+  disabled: boolean;
+  onPress: () => void;
+}) {
   const theme = useTheme();
-  const canDecrease = count > MIN_SPOTS;
-  const canIncrease = count < MAX_SPOTS;
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.infoMuted }]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      hitSlop={Spacing.one}
+      style={({ pressed }) => [
+        styles.button,
+        { backgroundColor: theme.backgroundSelected, opacity: disabled ? 0.4 : pressed ? 0.7 : 1 },
+      ]}>
+      <Icon name={icon} size={16} color={theme.text} />
+    </Pressable>
+  );
+}
+
+export function SpotCountCard({ count, onChange }: { count: number; onChange: (count: number) => void }) {
+  const theme = useTheme();
+
+  return (
+    <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
       <View style={styles.text}>
-        <ThemedText type="default" style={styles.title}>
-          How many spots?
-        </ThemedText>
+        <ThemedText type="defaultBold">Number of spots</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
-          Number of identical bays
+          Identical bays at this address
         </ThemedText>
       </View>
 
       <View style={styles.stepper}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Decrease spot count"
-          disabled={!canDecrease}
+        <StepButton
+          icon={{ sf: 'minus', md: 'remove' }}
+          label="Decrease spot count"
+          disabled={count <= MIN_SPOTS}
           onPress={() => onChange(count - 1)}
-          style={[styles.button, { backgroundColor: theme.background, opacity: canDecrease ? 1 : 0.4 }]}>
-          <Icon name={{ sf: 'minus', md: 'remove' }} size={14} color={theme.text} />
-        </Pressable>
-
-        <ThemedText type="statValue" style={styles.count}>
+        />
+        <ThemedText type="statValue" style={styles.count} accessibilityLiveRegion="polite">
           {count}
         </ThemedText>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Increase spot count"
-          disabled={!canIncrease}
+        <StepButton
+          icon={{ sf: 'plus', md: 'add' }}
+          label="Increase spot count"
+          disabled={count >= MAX_SPOTS}
           onPress={() => onChange(count + 1)}
-          style={[styles.button, { backgroundColor: theme.text, opacity: canIncrease ? 1 : 0.4 }]}>
-          <Icon name={{ sf: 'plus', md: 'add' }} size={14} color={theme.background as string} />
-        </Pressable>
+        />
       </View>
     </View>
   );
@@ -55,7 +75,6 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: Spacing.two,
     padding: Spacing.three,
     borderRadius: Radius.lg,
@@ -63,25 +82,22 @@ const styles = StyleSheet.create({
   },
   text: {
     flex: 1,
-    gap: 2,
-  },
-  title: {
-    fontWeight: 700,
+    gap: Spacing.half,
   },
   stepper: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.three,
+    gap: Spacing.two,
   },
   button: {
-    width: 28,
-    height: 28,
+    width: 36,
+    height: 36,
     borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
   count: {
-    minWidth: 16,
+    minWidth: Spacing.four,
     textAlign: 'center',
   },
 });

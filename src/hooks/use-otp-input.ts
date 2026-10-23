@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 export function useOtpInput(length: number, resendSeconds: number) {
-  const [digits, setDigits] = useState<string[]>(Array(length).fill(''));
+  const [code, setCodeState] = useState('');
   const [secondsLeft, setSecondsLeft] = useState(resendSeconds);
 
   useEffect(() => {
@@ -10,35 +10,18 @@ export function useOtpInput(length: number, resendSeconds: number) {
     return () => clearTimeout(timeout);
   }, [secondsLeft]);
 
-  const isComplete = digits.every((d) => d !== '');
-
-  function handleDigit(digit: string) {
-    const index = digits.findIndex((d) => d === '');
-    if (index === -1) return;
-    const next = [...digits];
-    next[index] = digit;
-    setDigits(next);
-  }
-
-  function handleDelete() {
-    let index = -1;
-    for (let i = length - 1; i >= 0; i--) {
-      if (digits[i] !== '') {
-        index = i;
-        break;
-      }
-    }
-    if (index === -1) return;
-    const next = [...digits];
-    next[index] = '';
-    setDigits(next);
+  /** Normalizes pasted/autofilled text (spaces, dashes) down to `length` digits. */
+  function setCode(text: string) {
+    const next = text.replace(/\D/g, '').slice(0, length);
+    setCodeState(next);
+    return next;
   }
 
   function handleResend() {
     if (secondsLeft > 0) return;
     setSecondsLeft(resendSeconds);
-    setDigits(Array(length).fill(''));
+    setCodeState('');
   }
 
-  return { digits, secondsLeft, isComplete, handleDigit, handleDelete, handleResend };
+  return { code, setCode, isComplete: code.length === length, secondsLeft, handleResend };
 }

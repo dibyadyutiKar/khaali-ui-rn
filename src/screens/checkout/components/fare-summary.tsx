@@ -7,66 +7,45 @@ import { useTheme } from '@/hooks/use-theme';
 export type FareLine = {
   label: string;
   amount: number;
-  info?: string;
 };
 
-export function FareSummary({ lines, total }: { lines: FareLine[]; total: number }) {
+export function FareSummary({
+  lines,
+  total,
+  cancelNote,
+}: {
+  lines: FareLine[];
+  total: number;
+  cancelNote: string;
+}) {
   const theme = useTheme();
 
   return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <ThemedText type="default" style={styles.sectionTitle}>
-          3. Fare summary
-        </ThemedText>
-        <ThemedText type="small" themeColor="accent" style={styles.surgeLabel}>
-          Zero host surge
-        </ThemedText>
-      </View>
-
-      <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
-        {lines.map((line) => (
-          <View key={line.label} style={styles.line}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {line.label}
-            </ThemedText>
-            <ThemedText type="small">
-              {line.amount < 0 ? '−' : ''}₹{Math.abs(line.amount)}
-            </ThemedText>
-          </View>
-        ))}
-
-        <View style={[styles.totalRow, { borderTopColor: theme.backgroundSelected }]}>
-          <View>
-            <ThemedText type="default" style={styles.totalLabel}>
-              Total payable
-            </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              Inclusive of all local parking tariffs
-            </ThemedText>
-          </View>
-          <ThemedText type="statValue">₹{total}</ThemedText>
+    <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
+      {lines.map((line) => (
+        <View key={line.label} style={styles.line}>
+          <ThemedText type="small" themeColor="textSecondary" style={styles.label}>
+            {line.label}
+          </ThemedText>
+          <ThemedText type="small">
+            {line.amount < 0 ? '−' : ''}₹{Math.abs(line.amount)}
+          </ThemedText>
         </View>
+      ))}
+
+      <View style={[styles.line, styles.total, { borderTopColor: theme.backgroundSelected }]}>
+        <ThemedText type="defaultBold">Total</ThemedText>
+        <ThemedText type="statValue">₹{total}</ThemedText>
       </View>
+
+      <ThemedText type="small" themeColor="textSecondary">
+        {cancelNote}
+      </ThemedText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  section: {
-    gap: Spacing.two,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  sectionTitle: {
-    fontWeight: 700,
-  },
-  surgeLabel: {
-    fontWeight: 700,
-  },
   card: {
     padding: Spacing.three,
     borderRadius: Radius.lg,
@@ -77,15 +56,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: Spacing.three,
   },
-  totalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  label: {
+    flexShrink: 1,
+  },
+  total: {
+    borderTopWidth: StyleSheet.hairlineWidth,
     paddingTop: Spacing.two,
-    borderTopWidth: 1,
-  },
-  totalLabel: {
-    fontWeight: 700,
+    marginTop: Spacing.one,
   },
 });

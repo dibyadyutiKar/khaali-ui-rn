@@ -5,7 +5,7 @@ import { Radius, Spacing, ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export function Pill({
-  tone = 'accentMuted',
+  tone = 'backgroundSelected',
   style,
   children,
 }: {
@@ -29,5 +29,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.one,
     borderRadius: Radius.full,
+    borderCurve: 'continuous',
   },
 });

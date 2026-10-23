@@ -5,40 +5,45 @@ import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /**
- * Two modes: a real editable field (search-location screen), or a non-editable button
- * styled identically that navigates to that screen on tap (Find's embedded bar) — pass
- * `editable={false}` + `onPress` for the latter instead of forking the visual treatment.
+ * Two modes: a real editable field, or a non-editable button styled identically that navigates
+ * on tap — pass `editable={false}` + `onPress` for the latter instead of forking the visual.
  */
 export function SearchBar({
   value,
   onChangeText,
-  onVoicePress,
+  onSubmit,
   onClear,
   onPress,
   editable = true,
+  autoFocus,
   placeholder = 'Where do you want to park?',
 }: {
   value: string;
   onChangeText?: (text: string) => void;
-  onVoicePress: () => void;
+  onSubmit?: () => void;
   onClear?: () => void;
   onPress?: () => void;
   editable?: boolean;
+  autoFocus?: boolean;
   placeholder?: string;
 }) {
   const theme = useTheme();
 
   const content = (
-    <View style={[styles.row, { backgroundColor: theme.background }]}>
+    <View style={[styles.row, { backgroundColor: theme.backgroundElement }]}>
       <Icon name={{ sf: 'magnifyingglass', md: 'search' }} size={18} color={theme.textSecondary} />
 
       <TextInput
         value={value}
         onChangeText={onChangeText}
+        onSubmitEditing={onSubmit}
+        returnKeyType="search"
+        autoFocus={autoFocus}
         editable={editable}
         placeholder={placeholder}
+        accessibilityLabel={placeholder}
         placeholderTextColor={theme.textSecondary}
-        style={[styles.input, { color: theme.text, outlineWidth: 0 }]}
+        style={[styles.input, { color: theme.text }]}
         pointerEvents={editable ? 'auto' : 'none'}
       />
 
@@ -47,32 +52,20 @@ export function SearchBar({
           accessibilityRole="button"
           accessibilityLabel="Clear search"
           onPress={onClear}
-          hitSlop={Spacing.one}>
+          hitSlop={Spacing.two}>
           <Icon name={{ sf: 'xmark.circle.fill', md: 'cancel' }} size={18} color={theme.textSecondary} />
         </Pressable>
-      )}
-
-      {editable ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Search by voice"
-          onPress={onVoicePress}
-          hitSlop={Spacing.one}>
-          <Icon name={{ sf: 'mic.fill', md: 'mic' }} size={18} color={theme.textSecondary} />
-        </Pressable>
-      ) : (
-        // Non-editable mode wraps this whole row in one outer Pressable (below) — a nested
-        // Pressable here would render an invalid <button> inside a <button> on web and
-        // double-fire on tap. The mic is decorative; voice search is reachable once on the
-        // real editable field this button navigates to.
-        <Icon name={{ sf: 'mic.fill', md: 'mic' }} size={18} color={theme.textSecondary} />
       )}
     </View>
   );
 
   if (!editable && onPress) {
     return (
-      <Pressable accessibilityRole="button" accessibilityLabel={placeholder} onPress={onPress}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={placeholder}
+        onPress={onPress}
+        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
         {content}
       </Pressable>
     );
@@ -90,11 +83,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.three,
     borderRadius: Radius.full,
     borderCurve: 'continuous',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
   },
   input: {
     flex: 1,
     fontSize: 16,
+    lineHeight: 20,
     padding: 0,
+    outlineWidth: 0,
   },
 });

@@ -1,6 +1,5 @@
 import { Pressable, ScrollView, StyleSheet } from 'react-native';
 
-import { Dot } from '@/components/dot';
 import { Icon, IconName } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
@@ -9,26 +8,36 @@ import { useTheme } from '@/hooks/use-theme';
 export type ChipOption<T extends string = string> = {
   id: T;
   label: string;
-  /** A semantic icon that inverts color with selection (e.g. a checkmark, a star). */
+  /** A semantic icon that inverts color with selection (e.g. a star). */
   icon?: IconName;
-  /** A fixed-color status dot that doesn't invert (e.g. a "live" indicator) — distinct from
-   * `icon` since its meaning (accent-colored, always-on) doesn't follow selection state. */
-  dot?: boolean;
 };
 
+/**
+ * Single-select chip row. Assumes the parent pads its content by `Spacing.three`: the row
+ * bleeds back out to the screen edge so chips scroll off-screen instead of clipping at the gutter.
+ */
 export function SelectChips<T extends string>({
   options,
   selected,
   onSelect,
+  onCard,
 }: {
   options: ChipOption<T>[];
   selected: T;
   onSelect: (id: T) => void;
+  /** Set when rendered on a `backgroundElement` card, so unselected chips don't vanish into it. */
+  onCard?: boolean;
 }) {
   const theme = useTheme();
+  const idleBackground = onCard ? theme.backgroundSelected : theme.backgroundElement;
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      accessibilityRole="radiogroup"
+      style={styles.bleed}
+      contentContainerStyle={styles.row}>
       {options.map((option) => {
         const active = option.id === selected;
         const foreground = active ? theme.background : theme.text;
@@ -40,10 +49,15 @@ export function SelectChips<T extends string>({
             accessibilityState={{ checked: active }}
             accessibilityLabel={option.label}
             onPress={() => onSelect(option.id)}
-            style={[styles.chip, { backgroundColor: active ? theme.text : theme.backgroundElement }]}>
-            {option.dot && <Dot color={theme.accent} size={6} />}
-            {option.icon && <Icon name={option.icon} size={12} color={foreground as string} />}
-            <ThemedText type="small" style={[styles.label, { color: foreground }]}>
+            style={({ pressed }) => [
+              styles.chip,
+              {
+                backgroundColor: active ? theme.text : idleBackground,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}>
+            {option.icon && <Icon name={option.icon} size={12} color={foreground} />}
+            <ThemedText type="smallBold" style={{ color: foreground }}>
               {option.label}
             </ThemedText>
           </Pressable>
@@ -54,9 +68,14 @@ export function SelectChips<T extends string>({
 }
 
 const styles = StyleSheet.create({
+  bleed: {
+    marginHorizontal: -Spacing.three,
+    flexGrow: 0,
+  },
   row: {
     flexDirection: 'row',
     gap: Spacing.two,
+    paddingHorizontal: Spacing.three,
   },
   chip: {
     flexDirection: 'row',
@@ -66,8 +85,5 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     borderRadius: Radius.full,
     borderCurve: 'continuous',
-  },
-  label: {
-    fontWeight: 600,
   },
 });

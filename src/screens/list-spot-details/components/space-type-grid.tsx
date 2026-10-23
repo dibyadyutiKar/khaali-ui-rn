@@ -20,50 +20,36 @@ export function SpaceTypeGrid({
   selected: string;
   onSelect: (id: string) => void;
 }) {
-  return (
-    <View style={styles.grid}>
-      {options.map((option) => (
-        <SpaceTypeTile
-          key={option.id}
-          option={option}
-          active={option.id === selected}
-          onPress={() => onSelect(option.id)}
-        />
-      ))}
-    </View>
-  );
-}
-
-function SpaceTypeTile({
-  option,
-  active,
-  onPress,
-}: {
-  option: SpaceType;
-  active: boolean;
-  onPress: () => void;
-}) {
   const theme = useTheme();
-  const foreground = active ? theme.background : theme.text;
 
   return (
-    <Pressable
-      accessibilityRole="radio"
-      accessibilityState={{ checked: active }}
-      accessibilityLabel={option.label}
-      onPress={onPress}
-      style={[styles.tile, { backgroundColor: active ? theme.text : theme.backgroundElement }]}>
-      <Icon name={option.icon} size={22} color={foreground as string} />
-      <ThemedText type="default" style={[styles.label, { color: foreground }]}>
-        {option.label}
-      </ThemedText>
+    <View style={styles.grid} accessibilityRole="radiogroup">
+      {options.map((option) => {
+        const active = option.id === selected;
+        const foreground = active ? theme.background : theme.text;
 
-      {active && (
-        <View style={[styles.badge, { backgroundColor: theme.accent }]}>
-          <Icon name={{ sf: 'checkmark', md: 'check' }} size={11} color={theme.background as string} />
-        </View>
-      )}
-    </Pressable>
+        return (
+          <Pressable
+            key={option.id}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: active }}
+            accessibilityLabel={option.label}
+            onPress={() => onSelect(option.id)}
+            style={({ pressed }) => [
+              styles.tile,
+              {
+                backgroundColor: active ? theme.text : theme.backgroundElement,
+                opacity: pressed ? 0.8 : 1,
+              },
+            ]}>
+            <Icon name={option.icon} size={22} color={foreground} />
+            <ThemedText type="defaultBold" style={{ color: foreground }}>
+              {option.label}
+            </ThemedText>
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
@@ -74,25 +60,11 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   tile: {
-    position: 'relative',
     flexBasis: '47%',
     flexGrow: 1,
     padding: Spacing.three,
     borderRadius: Radius.lg,
     borderCurve: 'continuous',
     gap: Spacing.two,
-  },
-  label: {
-    fontWeight: 700,
-  },
-  badge: {
-    position: 'absolute',
-    top: Spacing.two,
-    right: Spacing.two,
-    width: 20,
-    height: 20,
-    borderRadius: Radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

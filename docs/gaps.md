@@ -12,42 +12,46 @@ Delete a row here the moment its TODO is resolved in code — a stale gap list i
 
 | Screen | File | Function | What's stubbed | What unblocks it |
 |---|---|---|---|---|
-| Phone Verify | `src/screens/verify/index.tsx` | `handleVerify` | Doesn't check the entered code against anything — the button is only gated on "6 digits typed," not correctness | OTP verification endpoint |
-| Phone Verify | `src/screens/verify/index.tsx` | `handleWhatsApp` / `handleCall` | "Via WhatsApp" / "Call me instead" buttons are no-ops | SMS/WhatsApp/voice OTP delivery service |
-| Email Verify | `src/screens/verify-email/index.tsx` | `handleVerify` | Same as Phone Verify, for the email code | OTP verification endpoint |
+| Phone Verify, Email Verify | `src/screens/verify/index.tsx`, `src/screens/verify-email/index.tsx` | `handleVerify` | Any 6 digits pass — the code isn't checked against anything. Entering the 6th digit auto-submits | OTP verification endpoint |
+| Phone Verify | `src/screens/verify/index.tsx` | `handleWhatsApp` / `handleCall` | "Via WhatsApp" / "Call me instead" (shown only once the resend timer runs out) are no-ops | SMS/WhatsApp/voice OTP delivery service |
 | Profile Setup | `src/screens/profile-setup/index.tsx` | `handleContinue` | Selected role isn't persisted anywhere | User profile / role endpoint |
-| Welcome | `src/screens/welcome/index.tsx` | `handleGooglePress` | No real OAuth — button does nothing. Once wired, this path should skip straight to **Phone Entry** (`/phone`), not Email Entry — Google already verifies the email half of the identity, so only the phone half still needs collecting | Google Sign-In integration (client ID + native config via `expo-auth-session` or similar) |
-| Welcome | `src/screens/welcome/index.tsx` | `handleEarnPress` | "Have a parking space? Earn from it" goes nowhere | The host/list-a-space flow doesn't exist yet (not designed) |
-| Phone Entry, Email Entry, Phone Verify, Email Verify | 4 files | `handleContactSupport` | "Need help? Contact Khaali Support" link is inert on all four screens | The support flow/contact channel doesn't exist yet (not designed) |
-| Find | `src/screens/find/index.tsx` | `handleNotificationsPress` | Bell icon button is a no-op | A notifications screen/system doesn't exist yet (not designed) |
-| Find | `src/screens/find/index.tsx` | `handleVoicePress` | Mic icon in the search bar is a no-op | Speech-to-text provider not chosen |
-| Find | `src/screens/find/index.tsx` | `handleSortFilterPress` | "Sort & Filter" button is a no-op | Not worth building against 3 hardcoded mock spots — wire up once there's a real, larger result set |
-| Find | `src/screens/find/index.tsx` | `handleSpotPress` | Tapping a spot card goes nowhere | Spot detail screen doesn't exist yet (not designed) |
-| Search Location | `src/screens/search-location/index.tsx` | `handleVoicePress` | Mic icon is a no-op | Speech-to-text provider not chosen (same gap as Find's) |
-| Search Location | `src/screens/search-location/index.tsx` | `handleUseCurrentLocation` | Navigates to Search Results for real, but `detectedLabel` ("Koramangala 4th Block") is a hardcoded string, not a real GPS fix | `expo-location` (device GPS) + a reverse-geocoding API |
-| Search Location | `src/screens/search-location/index.tsx` | `handleAddPlace` | "+ Add New" under Saved Places is a no-op | A "save this place" flow, which itself needs a real address source (geocoding) first |
-| List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleEditAddress` | "Edit" next to the exact address is a no-op — the address itself is a hardcoded mock | `expo-location` + reverse-geocoding, same as Search Location's current-location gap |
-| List a Spot (step 1) | `src/screens/list-spot-location/index.tsx` | `handleLocatePress`, `handleZoomIn`, `handleZoomOut` | Map controls are present and tappable but do nothing | Real map SDK — see "Maps are illustrative" below, same root cause |
-| List a Spot (step 2) | `src/screens/list-spot-details/index.tsx` | `handleContinue` | "Continue" has nowhere to go once vehicle types + an hourly rate are set | Step 3 of the listing flow doesn't exist yet (not designed) |
-| List a Spot (step 2) | `src/screens/list-spot-location/index.tsx` | Time fields ("From" / "To") | Free-text `TextInput`, not a real time picker | See `docs/progress.md` Phase 3 — `@expo/ui`'s `DateTimePicker` renders nothing on web (confirmed in its own source), so it was deliberately not used; revisit once native (iOS/Android) verification is possible |
-| Checkout | `src/screens/checkout/index.tsx` | `handlePayAndReserve` | "Pay & Reserve" is a no-op — the displayed total is real and fully computed, but nothing is actually charged or reserved | Payment processor integration + a reservations endpoint |
-| Checkout | `src/screens/checkout/index.tsx` | `handleVerifyUpi` | "Verify" next to the UPI ID field is a no-op | No backend to check a UPI ID against |
-| Checkout | `src/screens/checkout/index.tsx` | `handleChangeVehicle` | "Change" next to the vehicle card is a no-op | Vehicle-management screen doesn't exist yet (not designed) |
+| Welcome | `src/screens/welcome/index.tsx` | `handleGooglePress` | No real OAuth — button does nothing. Once wired, this path should skip straight to **Phone Entry** (`/phone`) — Google already verifies the email half of the identity | Google Sign-In integration |
+| Phone Entry, Email Entry, Phone Verify, Email Verify | 4 files | `handleContactSupport` | "Contact support" link is inert | The support flow/contact channel doesn't exist yet (not designed) |
+| Search Location | `src/screens/search-location/index.tsx` | `handleUseCurrentLocation` | Navigates to Search Results for real, but the detected area is a hardcoded string, not a GPS fix | `expo-location` + a reverse-geocoding API |
+| List a Spot (step 2) | `src/screens/list-spot-details/index.tsx` | `handleContinue` | "Continue" has nowhere to go | Step 3 of the listing flow doesn't exist yet (not designed) |
+| List a Spot (step 2) | `src/screens/list-spot-details/components/availability-card.tsx` | `TimeField` | Free-text `TextInput`, not a real time picker | `@expo/ui`'s `DateTimePicker` renders nothing on web (confirmed in its source); revisit once native verification is possible — see `docs/progress.md` Phase 3 |
+| Checkout | `src/screens/checkout/index.tsx` | `handlePay` | "Pay & reserve" is a no-op — the total is fully computed, and a typed UPI ID must look like `name@bank`, but nothing is charged or reserved | Payment processor + reservations endpoint |
+| Host Dashboard | `src/screens/host-dashboard/index.tsx` | `resolveRequest` | Accept/Decline remove the request locally but don't confirm or notify anyone | Reservations + notification endpoints |
+
+## Removed until they can work (not stubbed — gone)
+
+The 2026-10 design review removed every control that looked tappable but did nothing, per AGENTS.md's "no dead ends" rule. These aren't TODOs in code anymore; add each back **with** its real behavior once what it needs exists:
+
+- **Notifications bell** (Find header) — needs a notifications system.
+- **Voice search mic** (`SearchBar`) — needs a speech-to-text provider.
+- **Sort & Filter button** (Find) — needs a real, larger result set.
+- **Map locate / zoom buttons** (Find, listing step 1) — needs a real map SDK.
+- **"Edit" exact address** (listing step 1) — needs reverse geocoding off a real pin.
+- **"+ Add New" saved place** (Search Location) — needs a real address source.
+- **"Change" vehicle** (Checkout) — needs a vehicle-management screen.
+- **"Verify" UPI ID** (Checkout) — needs a backend to verify against; the field is format-checked only.
+- **"View payouts"** and **"Manage all"** (Host Dashboard) — need payouts and listing-management screens.
+- **Spot card tap** (Find) — cards are no longer pressable until a spot detail screen exists.
 
 ## Missing screens (the flow currently dead-ends)
 
-- **Listing flow, step 3.** Steps 1 ("Location & Spot") and 2 ("Space & Pricing") are built; a review/submit step presumably isn't.
-- **Vehicle management.** Referenced by "Change" on Checkout's vehicle card.
-- **Support flow.** Referenced by every "Contact Khaali Support" link.
-- **Spot detail screen.** Referenced by every `SpotCard` tap on Find (Search Results' cards link to Book directly, not a detail screen, by design — a card already shows enough detail to decide).
-- **Bookings / Profile real screens.** Both tabs are currently `ComingSoon` placeholders — see `docs/progress.md` Phase 2. (List Space is no longer in this list — it's a real entry screen now, see Phase 3.)
-- **Phone-number edit screen beyond "go back."** Tapping the phone/email chip on a Verify screen just calls `router.back()` to the entry screen — there's no dedicated edit UI, which is fine since the entry screen already serves that purpose.
+- **Listing flow, step 3.** Steps 1 and 2 are built; a review/submit step isn't.
+- **Spot detail screen.** See "Spot card tap" above.
+- **Vehicle management**, **payouts**, **listing management**, **support flow** — see the removed controls above.
+- **Bookings / Profile real screens (renter-facing).** Both tabs are `ComingSoon` placeholders — see `docs/progress.md` Phase 2.
+- **Host Bookings / Earnings / Profile real screens.** All three host tabs (`/host/*`) are `ComingSoon` placeholders — see `docs/progress.md` Phase 5.
 
 ## Known platform-specific quirks (not bugs — left alone on purpose)
 
-- **Web-only autofill outline.** Chrome draws its own blue autofill-recognition rectangle around the `TextInput` on Phone Entry / Email Entry, on top of the app's own focus-border styling (`src/components/text-field.tsx`). This is browser chrome, not CSS the app controls, and it cannot occur on iOS/Android — the app's actual target platforms, where there's no browser UI layer at all. Fixing it would mean disabling autofill (`autoComplete="off"`), which trades away a real convenience for users just to clean up a secondary-platform (web preview) screenshot. Left as-is; revisit only if the web build becomes a primary target.
-- **Web-only tab bar position.** `NativeTabs` (`src/app/(tabs)/_layout.tsx`) renders a real bottom tab bar on iOS/Android, but on web it falls back to a `position:fixed`, top-pinned "navigation menu" — confirmed via DOM inspection to be the library's own web shim, not a layout bug in any screen. Tab navigation itself works correctly on web (verified by direct navigation + active-state checks); only the bar's visual position differs. See `AGENTS.md` → "Rules."
-- **Maps are illustrative everywhere, not real maps.** Find, Search Location, and the listing flow's pin screen all use the same static-illustration approach (hardcoded sample content, no pannable tiles, no live coordinates) rather than a real map SDK. This is one deliberate scope call applied consistently, not three separate oversights — a real map SDK needs an API key and is real, non-speculative work once the backend exists to feed it live data. See `docs/progress.md`.
+- **Web-only autofill outline.** Chrome may draw its own autofill rectangle around Phone/Email Entry's field. Browser chrome, can't occur on iOS/Android; left as-is.
+- **Web-only tab bar position.** `NativeTabs` renders a real bottom tab bar on iOS/Android but a `position:fixed`, top-pinned menu on web that overlaps the top of tab-root screens. Library web shim — see `AGENTS.md` → "Rules."
+- **Maps are illustrative everywhere, not real maps.** Welcome, Find, and listing step 1 use static illustrations. One deliberate scope call: a real map SDK needs an API key and live data from a backend.
+- **`@expo/ui` `Switch` has no accessibility-label prop** (only a visible `label`), so screen readers announce listing/EV/credits switches by role and state only. Revisit if `@expo/ui` adds one.
 
 ## How to use this doc
 

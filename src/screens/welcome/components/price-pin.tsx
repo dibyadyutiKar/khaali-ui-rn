@@ -1,6 +1,5 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
-import { Dot } from '@/components/dot';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -33,7 +32,6 @@ export function PricePin({
         { backgroundColor: background, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.14)' },
         style,
       ]}>
-      {!featured && <Dot color={theme.accent} size={6} />}
       <ThemedText type="smallBold" style={{ color: foreground }}>
         {price}
       </ThemedText>
@@ -52,6 +50,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.one,
     borderRadius: Radius.full,
+    borderCurve: 'continuous',
   },
   pinFeatured: {
     paddingHorizontal: Spacing.three,

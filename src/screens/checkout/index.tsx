@@ -1,34 +1,44 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
 import { FlowHeader } from '@/components/flow-header';
-import { Icon } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { FareLine, FareSummary } from './components/fare-summary';
-import { PaymentMethod, PaymentSection } from './components/payment-section';
+import { PaymentMethod, PaymentSection, UpiApp } from './components/payment-section';
 import { ScheduleSection } from './components/schedule-section';
 import { SpotSummaryCard } from './components/spot-summary-card';
-import { TrustNotes } from './components/trust-notes';
 
 const ENTRY_HOUR_24 = 14; // 2:00 PM
 const BASE_DURATION = 3;
+const MIN_DURATION = 1;
+const MAX_DURATION = 8;
 const EV_CHARGE_FEE = 45;
 const PROTECTION_COVER = 15;
 const CREDITS_MAX_APPLY = 50;
 const CREDITS_AVAILABLE = 150;
 
 function formatHour12(hour24: number) {
-  const period = hour24 >= 12 ? 'PM' : 'AM';
+  const period = hour24 % 24 >= 12 ? 'PM' : 'AM';
   const hour12 = ((hour24 + 11) % 12) + 1;
   return `${hour12}:00 ${period}`;
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <View style={styles.section}>
+      <ThemedText type="label" themeColor="textSecondary">
+        {title}
+      </ThemedText>
+      {children}
+    </View>
+  );
 }
 
 export function Checkout() {
@@ -44,104 +54,87 @@ export function Checkout() {
   const hourlyRate = Number(pricePerHour) || 40;
 
   const [duration, setDuration] = useState(BASE_DURATION);
-  const [evCharging, setEvCharging] = useState(true);
+  const [evCharging, setEvCharging] = useState(false);
   const [useCredits, setUseCredits] = useState(false);
   const [method, setMethod] = useState<PaymentMethod>('upi');
+  const [upiApp, setUpiApp] = useState<UpiApp>('gpay');
   const [upiId, setUpiId] = useState('');
-  const [selectedUpiApp, setSelectedUpiApp] = useState<string | null>(null);
-
-  const exitLabel = formatHour12(ENTRY_HOUR_24 + duration);
 
   const baseParking = hourlyRate * duration;
-  const evFee = evCharging ? EV_CHARGE_FEE : 0;
-  const subtotal = baseParking + PROTECTION_COVER + evFee;
+  const subtotal = baseParking + PROTECTION_COVER + (evCharging ? EV_CHARGE_FEE : 0);
   const creditsApplied = useCredits ? Math.min(CREDITS_MAX_APPLY, CREDITS_AVAILABLE, subtotal) : 0;
   const total = subtotal - creditsApplied;
 
   const fareLines: FareLine[] = [
-    { label: `Base parking (₹${hourlyRate}/hr × ${duration} hrs)`, amount: baseParking },
-    { label: 'Khaali Space Protection Cover', amount: PROTECTION_COVER },
+    { label: `Parking (₹${hourlyRate} × ${duration} hrs)`, amount: baseParking },
+    { label: 'Protection cover', amount: PROTECTION_COVER },
   ];
-  if (evCharging) {
-    fareLines.push({ label: 'EV Wallbox Fast Charger', amount: EV_CHARGE_FEE });
-  }
-  if (creditsApplied > 0) {
-    fareLines.push({ label: 'Khaali Credits applied', amount: -creditsApplied });
-  }
+  if (evCharging) fareLines.push({ label: 'EV charging', amount: EV_CHARGE_FEE });
+  if (creditsApplied > 0) fareLines.push({ label: 'Khaali credits', amount: -creditsApplied });
 
-  function handleExtend(hours: number) {
-    setDuration((prev) => Math.min(prev + hours, 12));
-  }
+  const canPay = method !== 'upi' || upiApp !== 'upi-id' || upiId.includes('@');
 
-  function handleResetDuration() {
-    setDuration(BASE_DURATION);
-  }
-
-  function handleChangeVehicle() {
-    // TODO: no vehicle-management screen yet to change to.
-  }
-
-  function handleVerifyUpi() {
-    // TODO: no backend to verify a UPI ID against yet.
-  }
-
-  function handlePayAndReserve() {
+  function handlePay() {
     // TODO: no payment backend yet — see docs/gaps.md.
   }
 
   return (
     <ThemedView style={styles.screen}>
       <ScrollView
-        style={styles.scroll}
+        style={styles.screen}
         contentInsetAdjustmentBehavior="automatic"
+        automaticallyAdjustKeyboardInsets
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
           styles.content,
           { paddingTop: Platform.OS === 'android' ? insets.top + Spacing.three : Spacing.three },
         ]}>
-        <FlowHeader title="Checkout Flow" onBack={() => router.back()} right={<Avatar size={36} />} />
+        <FlowHeader title="Checkout" onBack={() => router.back()} />
 
         <SpotSummaryCard
           title={title}
-          bay="Bay 5A"
-          typeLabel="Stilt Covered"
-          address="5th Block, Koramangala (Opposite Blue Tokai)"
+          detail="Bay 5A · Covered stilt"
+          address="5th Block, Koramangala"
         />
 
-        <ScheduleSection
-          dateLabel="Today (Wed, 24 Oct)"
-          entryLabel={formatHour12(ENTRY_HOUR_24)}
-          durationHours={duration}
-          exitLabel={exitLabel}
-          onExtend={handleExtend}
-          onReset={handleResetDuration}
-          canReset={duration !== BASE_DURATION}
-          vehiclePlate="KA 01 MJ 8821"
-          vehicleType="SUV"
-          vehicleModel="Tata Nexon EV • Glacier White"
-          onChangeVehicle={handleChangeVehicle}
-          evCharging={evCharging}
-          onToggleEvCharging={setEvCharging}
-        />
+        <Section title="When">
+          <ScheduleSection
+            dateLabel="Today, 24 Oct"
+            timeRangeLabel={`${formatHour12(ENTRY_HOUR_24)} – ${formatHour12(ENTRY_HOUR_24 + duration)}`}
+            durationHours={duration}
+            minHours={MIN_DURATION}
+            maxHours={MAX_DURATION}
+            onChangeDuration={setDuration}
+            vehicleLabel="KA 01 MJ 8821 · Tata Nexon EV"
+            evCharging={evCharging}
+            evFee={EV_CHARGE_FEE}
+            onToggleEvCharging={setEvCharging}
+          />
+        </Section>
 
-        <PaymentSection
-          useCredits={useCredits}
-          onToggleCredits={setUseCredits}
-          creditsAvailable={CREDITS_AVAILABLE}
-          creditsApplied={creditsApplied}
-          method={method}
-          onSelectMethod={setMethod}
-          upiId={upiId}
-          onChangeUpiId={setUpiId}
-          onVerifyUpi={handleVerifyUpi}
-          selectedUpiApp={selectedUpiApp}
-          onSelectUpiApp={setSelectedUpiApp}
-        />
+        <Section title="Pay with">
+          <PaymentSection
+            method={method}
+            onSelectMethod={setMethod}
+            upiApp={upiApp}
+            onSelectUpiApp={setUpiApp}
+            upiId={upiId}
+            onChangeUpiId={setUpiId}
+            useCredits={useCredits}
+            onToggleCredits={setUseCredits}
+            creditsBalance={CREDITS_AVAILABLE}
+            creditsMaxApply={CREDITS_MAX_APPLY}
+          />
+        </Section>
 
-        <FareSummary lines={fareLines} total={total} />
-
-        <TrustNotes cancelByLabel="01:45 PM" />
+        <Section title="Summary">
+          <FareSummary
+            lines={fareLines}
+            total={total}
+            cancelNote={`Free cancellation until ${formatHour12(ENTRY_HOUR_24 - 1)}.`}
+          />
+        </Section>
       </ScrollView>
 
       <View
@@ -153,27 +146,13 @@ export function Checkout() {
             paddingBottom: insets.bottom + Spacing.three,
           },
         ]}>
-        <View>
-          <ThemedText type="statValue">
-            ₹{total}
-            <ThemedText type="small" themeColor="textSecondary">
-              {' '}
-              / {duration} hrs
-            </ThemedText>
+        <View style={styles.footerTotal}>
+          <ThemedText type="statValue">₹{total}</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            {duration} hrs
           </ThemedText>
-          <View style={styles.guaranteedRow}>
-            <Icon name={{ sf: 'mappin.circle.fill', md: 'place' }} size={12} color={theme.accent} />
-            <ThemedText type="small" themeColor="accent">
-              Guaranteed Bay 5A
-            </ThemedText>
-          </View>
         </View>
-
-        <Button
-          title={`Pay & Reserve • ₹${total}`}
-          onPress={handlePayAndReserve}
-          style={styles.payButton}
-        />
+        <Button title="Pay & reserve" disabled={!canPay} onPress={handlePay} style={styles.payButton} />
       </View>
     </ThemedView>
   );
@@ -183,32 +162,30 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
-  scroll: {
-    flex: 1,
-  },
   content: {
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
     paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.four,
-    gap: Spacing.three,
+    gap: Spacing.four,
+  },
+  section: {
+    gap: Spacing.two,
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: Spacing.three,
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.three,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  guaranteedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.half,
+  footerTotal: {
+    flex: 1,
+    minWidth: 0,
   },
   payButton: {
-    flexShrink: 1,
+    flexShrink: 0,
   },
 });

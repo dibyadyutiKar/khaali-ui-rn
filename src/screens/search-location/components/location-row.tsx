@@ -1,7 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon, IconName } from '@/components/icon';
-import { Pill } from '@/components/pill';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -9,18 +8,15 @@ import { useTheme } from '@/hooks/use-theme';
 export function LocationRow({
   icon,
   title,
-  meta,
-  badge,
   subtitle,
-  trailingIcon,
+  emphasized,
   onPress,
 }: {
   icon: IconName;
   title: string;
-  meta?: string;
-  badge?: string;
   subtitle: string;
-  trailingIcon: IconName;
+  /** Inverted icon circle — for the one primary row (current location). */
+  emphasized?: boolean;
   onPress: () => void;
 }) {
   const theme = useTheme();
@@ -30,35 +26,25 @@ export function LocationRow({
       accessibilityRole="button"
       accessibilityLabel={`${title}, ${subtitle}`}
       onPress={onPress}
-      style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : 1 }]}>
-      <View style={[styles.iconCircle, { backgroundColor: theme.backgroundElement }]}>
-        <Icon name={icon} size={18} color={theme.text} />
+      style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}>
+      <View
+        style={[
+          styles.iconCircle,
+          { backgroundColor: emphasized ? theme.text : theme.backgroundElement },
+        ]}>
+        <Icon name={icon} size={18} color={emphasized ? theme.background : theme.text} />
       </View>
 
       <View style={styles.body}>
-        <View style={styles.titleRow}>
-          <ThemedText type="default" style={styles.title} numberOfLines={1}>
-            {title}
-          </ThemedText>
-          {meta && (
-            <ThemedText type="small" themeColor="textSecondary">
-              • {meta}
-            </ThemedText>
-          )}
-          {badge && (
-            <Pill tone="backgroundSelected" style={styles.badge}>
-              <ThemedText type="small" style={styles.badgeLabel}>
-                {badge}
-              </ThemedText>
-            </Pill>
-          )}
-        </View>
+        <ThemedText type="defaultBold" numberOfLines={1}>
+          {title}
+        </ThemedText>
         <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
           {subtitle}
         </ThemedText>
       </View>
 
-      <Icon name={trailingIcon} size={16} color={theme.textSecondary} />
+      <Icon name={{ sf: 'chevron.right', md: 'chevron-right' }} size={16} color={theme.textSecondary} />
     </Pressable>
   );
 }
@@ -68,6 +54,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
+    paddingVertical: Spacing.one,
   },
   iconCircle: {
     width: 40,
@@ -78,21 +65,6 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
-    gap: 2,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one,
-  },
-  title: {
-    fontWeight: 700,
-    flexShrink: 1,
-  },
-  badge: {
-    paddingVertical: 2,
-  },
-  badgeLabel: {
-    fontWeight: 600,
+    gap: Spacing.half,
   },
 });

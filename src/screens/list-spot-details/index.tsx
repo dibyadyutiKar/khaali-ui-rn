@@ -1,13 +1,12 @@
 import { Host, Switch } from '@expo/ui';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { FlowHeader } from '@/components/flow-header';
 import { FlowStepProgress } from '@/components/flow-step-progress';
-import { Icon } from '@/components/icon';
 import { MultiSelectChips } from '@/components/multi-select-chips';
 import { ChipOption } from '@/components/select-chips';
 import { ThemedText } from '@/components/themed-text';
@@ -29,16 +28,28 @@ const SPACE_TYPES: SpaceType[] = [
 
 const VEHICLE_TYPES: ChipOption[] = [
   { id: 'two-wheeler', label: '2-Wheeler', icon: { sf: 'scooter', md: 'two-wheeler' } },
-  { id: 'hatchback', label: 'Hatchback', icon: { sf: 'car.fill', md: 'directions-car' } },
-  { id: 'sedan', label: 'Sedan', icon: { sf: 'car.fill', md: 'directions-car' } },
-  { id: 'suv', label: 'SUV', icon: { sf: 'car.fill', md: 'directions-car' } },
+  { id: 'hatchback', label: 'Hatchback' },
+  { id: 'sedan', label: 'Sedan' },
+  { id: 'suv', label: 'SUV' },
 ];
 
 const AMENITIES: ChipOption[] = [
-  { id: 'security-guard', label: 'Security guard', icon: { sf: 'shield.fill', md: 'security' } },
-  { id: 'ev-charging', label: 'EV charging', icon: { sf: 'bolt.fill', md: 'bolt' } },
-  { id: 'lift-access', label: 'Lift access', icon: { sf: 'arrow.up.arrow.down', md: 'elevator' } },
+  { id: 'security-guard', label: 'Security guard' },
+  { id: 'cctv', label: 'CCTV' },
+  { id: 'ev-charging', label: 'EV charging' },
+  { id: 'lift-access', label: 'Lift access' },
 ];
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <View style={styles.section}>
+      <ThemedText type="label" themeColor="textSecondary">
+        {title}
+      </ThemedText>
+      {children}
+    </View>
+  );
+}
 
 export function ListSpotDetails() {
   const router = useRouter();
@@ -65,131 +76,76 @@ export function ListSpotDetails() {
   }
 
   function handleContinue() {
-    if (!canContinue) return;
     // TODO: step 3 (review/submit) doesn't exist yet — see docs/gaps.md.
   }
 
   return (
     <ThemedView style={styles.screen}>
       <ScrollView
-        style={styles.scroll}
+        style={styles.screen}
         contentInsetAdjustmentBehavior="automatic"
+        automaticallyAdjustKeyboardInsets
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
           styles.content,
           { paddingTop: Platform.OS === 'android' ? insets.top + Spacing.three : Spacing.three },
         ]}>
-        <FlowHeader title="New Spot Listing Flow" onBack={() => router.back()} />
+        <FlowHeader title="List your spot" onBack={() => router.back()} />
 
-        <FlowStepProgress step={2} totalSteps={3} label="Space & Pricing" />
+        <FlowStepProgress step={2} totalSteps={3} label="Details & pricing" />
 
-        <ThemedText type="headline">Space details &amp; pricing</ThemedText>
-        <ThemedText type="default" themeColor="textSecondary">
-          Set spot specifications, working hours, and competitive local rates.
-        </ThemedText>
+        <ThemedText type="headline">Details &amp; pricing</ThemedText>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <ThemedText type="default" style={styles.sectionTitle}>
-              Space type
-            </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              Required
-            </ThemedText>
-          </View>
+        <Section title="Space type">
           <SpaceTypeGrid options={SPACE_TYPES} selected={spaceType} onSelect={setSpaceType} />
-        </View>
+        </Section>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <ThemedText type="default" style={styles.sectionTitle}>
-              Fits vehicle types
-            </ThemedText>
-            <ThemedText type="small" themeColor="accent" style={styles.sectionHint}>
-              Multiple selectable
-            </ThemedText>
-          </View>
+        <Section title="Fits">
           <MultiSelectChips
             options={VEHICLE_TYPES}
             selected={vehicleTypes}
             onToggle={(id) => toggleFromList(vehicleTypes, id, setVehicleTypes)}
           />
-        </View>
+        </Section>
 
         <SpotCountCard count={spotCount} onChange={setSpotCount} />
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <ThemedText type="default" style={styles.sectionTitle}>
-              Amenities &amp; security
-            </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              Optional
-            </ThemedText>
-          </View>
+        <Section title="Amenities · optional">
           <MultiSelectChips
             options={AMENITIES}
             selected={amenities}
             onToggle={(id) => toggleFromList(amenities, id, setAmenities)}
           />
-        </View>
+        </Section>
 
-        <AvailabilityCard
-          activeDays={activeDays}
-          onToggleDay={(id) => toggleFromList(activeDays, id, setActiveDays)}
-          fromTime={fromTime}
-          onChangeFromTime={setFromTime}
-          toTime={toTime}
-          onChangeToTime={setToTime}
-          alwaysOpen={alwaysOpen}
-          onToggleAlwaysOpen={setAlwaysOpen}
-        />
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <ThemedText type="default" style={styles.sectionTitle}>
-              Set your rates
-            </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              ₹ INR
-            </ThemedText>
-          </View>
-
-          <RateField
-            label="Per hour"
-            value={perHour}
-            onChangeText={setPerHour}
-            hint="Similar spots nearby earn ₹40/hr"
-            hintIcon={{ sf: 'arrow.up.right', md: 'trending-up' }}
+        <Section title="Availability">
+          <AvailabilityCard
+            activeDays={activeDays}
+            onToggleDay={(id) => toggleFromList(activeDays, id, setActiveDays)}
+            fromTime={fromTime}
+            onChangeFromTime={setFromTime}
+            toTime={toTime}
+            onChangeToTime={setToTime}
+            alwaysOpen={alwaysOpen}
+            onToggleAlwaysOpen={setAlwaysOpen}
           />
+        </Section>
+
+        <Section title="Rates">
+          <RateField label="Per hour" value={perHour} onChangeText={setPerHour} hint="Nearby: ₹40" />
           <RateField label="Per day" value={perDay} onChangeText={setPerDay} />
-          <View style={styles.neutralHint}>
-            <Icon name={{ sf: 'info.circle', md: 'info' }} size={11} color={theme.textSecondary} />
-            <ThemedText type="small" themeColor="textSecondary">
-              Recommended daily cap
-            </ThemedText>
-          </View>
-          <RateField
-            label="Per month"
-            value={perMonth}
-            onChangeText={setPerMonth}
-            hint="Similar spots nearby earn ₹2,500/month"
-            hintIcon={{ sf: 'checkmark.circle.fill', md: 'check-circle' }}
-          />
-        </View>
+          <RateField label="Per month" value={perMonth} onChangeText={setPerMonth} hint="Nearby: ₹2,500" />
+        </Section>
 
-        <View style={[styles.instantBookCard, { backgroundColor: theme.backgroundElement }]}>
-          <View style={styles.instantBookHeader}>
-            <Icon name={{ sf: 'bolt.fill', md: 'bolt' }} size={16} color={theme.text} />
-            <ThemedText type="default" style={styles.instantBookTitle}>
-              Instant book
+        <View style={[styles.toggleCard, { backgroundColor: theme.backgroundElement }]}>
+          <View style={styles.toggleText}>
+            <ThemedText type="defaultBold">Instant book</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Verified drivers can book without your approval.
             </ThemedText>
           </View>
-          <ThemedText type="small" themeColor="textSecondary" style={styles.instantBookBody}>
-            Verified drivers can reserve instantly without your manual approval.
-          </ThemedText>
-          <Host matchContents style={styles.instantBookSwitch}>
+          <Host matchContents>
             <Switch value={instantBook} onValueChange={setInstantBook} />
           </Host>
         </View>
@@ -204,7 +160,7 @@ export function ListSpotDetails() {
             paddingBottom: insets.bottom + Spacing.three,
           },
         ]}>
-        <Button title="Continue →" disabled={!canContinue} onPress={handleContinue} />
+        <Button title="Continue" disabled={!canContinue} onPress={handleContinue} />
       </View>
     </ThemedView>
   );
@@ -214,62 +170,32 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
-  scroll: {
-    flex: 1,
-  },
   content: {
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
     paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.four,
-    gap: Spacing.three,
+    gap: Spacing.four,
   },
   section: {
     gap: Spacing.two,
   },
-  sectionHeader: {
+  toggleCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  sectionTitle: {
-    fontWeight: 700,
-  },
-  sectionHint: {
-    fontWeight: 700,
-  },
-  neutralHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.half,
-    marginTop: -Spacing.one,
-  },
-  instantBookCard: {
+    gap: Spacing.three,
     padding: Spacing.three,
     borderRadius: Radius.lg,
     borderCurve: 'continuous',
-    gap: Spacing.one,
   },
-  instantBookHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one,
-  },
-  instantBookTitle: {
-    fontWeight: 700,
-  },
-  instantBookBody: {
-    lineHeight: 18,
-  },
-  instantBookSwitch: {
-    position: 'absolute',
-    top: Spacing.three,
-    right: Spacing.three,
+  toggleText: {
+    flex: 1,
+    gap: Spacing.half,
   },
   footer: {
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.three,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });
